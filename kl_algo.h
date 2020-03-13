@@ -349,52 +349,6 @@ int max_gain_position(vector<double>gain_list)
 	}
 	return pos;
 }
-void 
-set_cell_partition_id(int cell_id, int partition_id, vector<Cell> &cell_list, vector<Cell> adjacent_list[], vector<Cell> reduced_adjacent_list[], int cell_count)
-{
-	int index = cell_id - 1;
-	
-	cell_list[index].partition_id = partition_id;
-	bool present=false;
-	for(int i=0;i<cell_count;i++)
-	{
-		
-		if(!adjacent_list[i].empty())
-		{
-			present = is_cell_present(adjacent_list[i],adjacent_list[i].size(),cell_id);
-			
-			if(present)
-			{
-				for(int j=0;j<adjacent_list[i].size();j++)
-				{
-					if(cell_id == adjacent_list[i][j].cell_id)
-					{
-						adjacent_list[i][j].partition_id = partition_id;
-						break;
-					}
-				}
-			}
-		}
-		present = false;
-		if(!reduced_adjacent_list[i].empty())
-		{
-			present = is_cell_present(reduced_adjacent_list[i],reduced_adjacent_list[i].size(),cell_id);
-			
-			if(present)
-			{
-				for(int j=0;j<reduced_adjacent_list[i].size();j++)
-				{
-					if(cell_id == reduced_adjacent_list[i][j].cell_id)
-					{
-						reduced_adjacent_list[i][j].partition_id = partition_id;
-						break;
-					}
-				}	
-			} 
-		}
-	}
-}
-
 
 void
 KL_Algorithm(vector<Cell> &cell_list, vector<Cell> adjacent_list[], vector<Cell> reduced_adjacent_list[], int cell_count, map< pair<int,int>, double > weight,

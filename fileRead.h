@@ -7,8 +7,45 @@
 #include<string>
 using namespace std;
 
+
+void get_netcount_from_file(const string file_name,int &net_count)
+{
+	ifstream file;
+	//file.open("test.txt");
+	file.open(file_name);
+	string p = "";
+	if(!file.is_open())
+	{
+		cout<<"Can't open the file"<<endl;
+		return;
+	}
+	
+	string word;
+	int b;
+	int count=0;
+	getline(file,word);
+	
+	string temp;
+	stringstream iss(word);
+	while(iss >> temp)
+	{
+			b = atoi(temp.c_str());
+		 //	cout<<b<<endl;
+		 	if(count==0)
+		 	{
+		 		net_count = b;
+		 		//cout<<net_count<<endl;
+				count++;	
+			}	
+	}
+	
+	file.close();
+	
+	
+}
 void fileRead(const string file_name,int &net_count, int &cell_count, vector<int> net_list[])
 {
+//	cout<<"Reading file\n";
 	ifstream file;
 	//file.open("test.txt");
 	file.open(file_name);
@@ -26,7 +63,7 @@ void fileRead(const string file_name,int &net_count, int &cell_count, vector<int
 	while(getline(file, word))
 	{
 		string temp;
-		//cout<<word<<endl;
+	//	cout<<word<<endl;
 		line_number++;
 		//cout<<"Line: "<<line_number<<endl;
 		//count = 0;
@@ -53,7 +90,7 @@ void fileRead(const string file_name,int &net_count, int &cell_count, vector<int
 			}
 			else if (count==2)
 			{
-				net_list->resize(net_count);
+				//net_list->resize(net_count);
 				net_list[count_1].clear();
 				count++;
 			//	cout<<"count_1: "<<count_1<<endl;

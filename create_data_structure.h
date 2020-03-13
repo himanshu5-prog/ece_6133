@@ -1,6 +1,9 @@
 #include<iostream>
 using namespace std;
 
+
+int chip_height = 154;
+int chip_width  = 154;
 void create_detailed_netlist(vector<Cell> detailed_net_list[], vector<int> net_list[], int net_count)
 {
 	Cell *temp;
@@ -13,13 +16,16 @@ void create_detailed_netlist(vector<Cell> detailed_net_list[], vector<int> net_l
 		{
 			temp->cell_id=net_list[i][j];
 			temp->locked=false;
-			temp->partition_id = 0 ;
+			temp->partition_id = 5 ;
 			//cout<<"size: "<<net_list[i].size()<<endl;
 			//w= 1/ ((double (net_list[i].size() ))-1 );
 			//	cout<<"w: "<<w<<endl;
 			temp->weight = 0;
-			temp->x_dim=0;
-			temp->y_dim=0;
+			temp->x_dim=chip_width/2;
+			temp->y_dim=chip_height/2;
+			temp->all_same_partition_net_count= 0;
+			temp->only_cell_net_count = 0;
+			temp->active = false;
 			detailed_net_list[i].push_back(*temp);
 		//	cout<<detailed_net_list[i].size()<<endl;
 		}
@@ -156,6 +162,7 @@ void create_cell_list(vector<Cell> &cell_list, int cell_count, vector<Cell> deta
 	int cell_id=0;
 	bool present=false;
 	bool loop_exit=false;
+	cout<<"inside create cell list: cell_count: "<<cell_count<<endl;
 	for(int i=0;i<cell_count;i++)
 	{
 		cell_id = i+1;
@@ -184,6 +191,60 @@ void create_cell_list(vector<Cell> &cell_list, int cell_count, vector<Cell> deta
 	}
 }
 
+void create_cell_list_2(vector<Cell> &cell_list, int cell_count, vector<Cell> detailed_net_list[], int detailed_netlist_size, vector<Cell*> &cell_ptr_list)
+{
+	int cell_id=0;
+	bool present=false;
+	bool loop_exit=false;
+	Cell *temp;
+	temp = new Cell;
+	
+	temp->cell_id=0;
+	temp->locked=true;
+	temp->active = false;
+	temp->weight=0;
+	temp->weight = 0;
+	temp->x_dim=0;
+	temp->y_dim=0;
+	temp->all_same_partition_net_count= 0;
+	temp->only_cell_net_count = 0;
+	//cout<<"inside create cell list: cell_count: "<<cell_count<<endl;
+	for(int i=0;i<cell_count;i++)
+	{
+		cell_id = i+1;
+		loop_exit=false;
+		for(int j=0; j<detailed_netlist_size;j++)
+		{
+			present = is_cell_present(detailed_net_list[j], detailed_net_list[j].size(),cell_id);
+			if(!present )
+				continue;
+			
+			else if(present)
+			{
+				for(int k=0;k<detailed_net_list[j].size();k++)
+				{
+					if(cell_id == detailed_net_list[j][k].cell_id)
+					{
+						cell_list.push_back(detailed_net_list[j][k]);
+						cell_ptr_list.push_back(&detailed_net_list[j][k]);
+						loop_exit=true;
+						break;
+					}
+				}
+			}
+			if(loop_exit==true)
+				break;
+		}
+		if(loop_exit==false)
+		{
+			cout<<"inserting dummy cell!!"<<endl;
+			cout<<"cell_id not connected: "<<cell_id;
+			cell_list.push_back(*temp);
+		}
+	}
+	
+	//cout<<"size of cell_list: "<<cell_list.size()<<endl;
+}
 vector<Cell> report_neighbors(int cell_id, vector<Cell> reduced_adjacent_list[], int cell_count)
 {
 	vector <Cell> neighbor;
@@ -207,6 +268,8 @@ void update_detailed_netlist(vector<Cell> cell_list, vector<Cell> detailed_net_l
 				cell_id = detailed_net_list[i][j].cell_id;
 				index = cell_id - 1;
 				detailed_net_list[i][j].partition_id = cell_list[index].partition_id;
+				detailed_net_list[i][j].x_dim = cell_list[index].x_dim;
+				detailed_net_list[i][j].y_dim = cell_list[index].y_dim;
 		}
 	}
 }
@@ -228,5 +291,58 @@ void create_cell_net_list(vector<Cell> detailed_net_list[], int net_count, vecto
 				cell_net_list[i].push_back(j);
 			}
 		}
+	}
+}
+void initialise_cell_list(vector<Cell> &cell_list)
+{
+	for(int i=0;i<cell_list.size();i++)
+	{
+		cell_list[i].partition_id = (i%2) + 1;
+		cell_list[i].only_cell_net_count = 0;
+		cell_list[i].all_same_partition_net_count = 0;
+		cell_list[i].active = true;
+	}
+}
+
+void initialise_cell_list_2(vector<Cell> &cell_list, vector<Cell> &global_cell_list)
+{
+	int cell_id;
+	for(int i=0;i<cell_list.size();i++)
+	{
+		cell_id = cell_list[i].cell_id;
+		
+		cell_list[i].partition_id = (i%2) + 1;
+		cell_list[i].only_cell_net_count = 0;
+		cell_list[i].all_same_partition_net_count = 0;
+		cell_list[i].active = true;
+		
+		if(cell_id != 0)
+		{
+			global_cell_list[cell_id - 1].partition_id = (i%2) + 1;
+			global_cell_list[cell_id - 1].only_cell_net_count = 0;
+			global_cell_list[cell_id - 1].all_same_partition_net_count = 0;
+			global_cell_list[cell_id - 1].active = true;
+		}
+	}
+}
+
+void reset_global_cell_list(vector<Cell> cell_list, vector<Cell> &global_cell_list)
+{
+	int cell_id;
+	for(int i=0;i<cell_list.size();i++)
+	{
+		cell_id = cell_list[i].cell_id;
+		if(cell_id != 0)
+		{
+			global_cell_list[cell_id - 1].active = false;
+		}
+	}
+}
+
+void create_global_cell_list(vector<Cell> cell_list, vector<Cell*> &global_cell_list, int cell_count)
+{
+	for(int i=0; i< cell_list.size();i++)
+	{
+		global_cell_list.push_back(&cell_list[i]);
 	}
 }

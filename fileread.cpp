@@ -15,17 +15,130 @@
 #include<string>
 #include "fm_algo.h"
 using namespace std;
-string file_name = "p2.hgr";
+string file_name = "industry3.hgr";
 //int chip_height = 1000;
 //int  chip_width = 1000;
+
+void min_cut_placement_bfs(int cell_count, vector<Cell> &cell_list,bool p_type, int count_threshold, vector<int> cell_net_list[], vector<Cell> detailed_net_list[],
+int net_count, int cut_size, vector<Cell> adjacent_list[], int max_connect, vector<Cell> &global_cell_list,
+double x_coord, double y_coord, double width, double height)
+{
+	queue< vector<Cell> > q_cell_list;
+	
+	q_cell_list.push(cell_list);
+	vector<Cell> cell_list_present;
+	
+	vector<Cell> cell_list_p1;
+	vector<Cell> cell_list_p2;
+	int cell_count_present;
+	int count_p_type=0;
+	int limit=1;
+	bool start=true;
+	double x_coord1 ,y_coord1 ,width1, height1;
+	x_coord1 = x_coord;
+	y_coord1 = y_coord;
+	width1 = width;
+	height1 = height;
+	
+	int cell_count_p1, cell_count_p2;
+	while(!q_cell_list.empty())
+	{
+			cell_list_present = q_cell_list.front();
+			q_cell_list.pop();
+			
+			
+			if(count_p_type == limit)
+			{
+				limit = limit<<1;
+				count_p_type = 0;
+				
+				if(p_type == 0)
+					p_type = 1;
+				else if(p_type == 1)
+					p_type = 0;
+				
+				cout<<"limit: "<<limit<<endl;
+			}
+			
+			
+			if(cell_list_present.size() < 100)
+			{
+				cout<<"Threshold reached\n";	
+			} 
+			else
+			{
+				//if(count_p_type == 1)
+				cell_count_present = cell_list_present.size();
+				
+				if(p_type == 0)
+				{
+					cout<<"Performing Horizontal cut: \n";
+					if(start == true)
+						start=false;
+					else
+					{
+						y_coord1 = y_coord1 - height/4;
+						height = height/2;
+						//y_coord2 = y_coord + height/4;
+					}
+				} 
+				else if(p_type == 1)
+				{
+					cout<<"Performing Vertical cut: \n";
+					
+					if(start == true)
+						start = false;
+					
+					else
+					{
+						x_coord1 = x_coord1 - width/4;
+						width = width/2;
+						//x_coord2 = x_coord + width/4; 
+					}
+				}
+					
+				
+				else if(p_type == 1)
+				cout<<"Performing Vertival cut\n";
+				apply_FM_Algorithm(cell_list_present,cell_count_present,cell_net_list,detailed_net_list ,net_count,cut_size,adjacent_list,cut_size,max_connect,
+				cell_list_p1,cell_list_p2,p_type,global_cell_list,x_coord,y_coord,width,height);
+				cell_count_p1 = cell_list_p1.size();
+				cell_count_p2 = cell_list_p2.size();
+				cout<<"sub cell list p1 size: "<<cell_count_p1<<" sub cell list p2 size: "<<cell_count_p2<<endl;
+				if(cell_count_p1)
+				{
+					cout<<"p1 x coord: "<<cell_list_p1[0].x_dim<<"p1 y coord: "<<cell_list_p1[0].y_dim<<endl;
+				}
+	
+				if(cell_count_p2)
+				{
+					cout<<"p2 x coord: "<<cell_list_p2[0].x_dim<<"p2 y coord: "<<cell_list_p2[0].y_dim<<endl;
+				}			
+					q_cell_list.push(cell_list_p1);
+					q_cell_list.push(cell_list_p2);
+					
+					cell_list_p1.clear();
+					cell_list_p1.shrink_to_fit();
+					
+					cell_list_p2.clear();
+					cell_list_p2.shrink_to_fit();
+					
+					count_p_type++;
+				
+			}
+	} 
+	
+}
+
 void min_cut_placement(int cell_count, vector<Cell> &cell_list,bool p_type, int count_threshold, vector<int> cell_net_list[], vector<Cell> detailed_net_list[],
-int net_count, int cut_size, vector<Cell> adjacent_list[], int max_connect, vector<Cell> &global_cell_list  )
+int net_count, int cut_size, vector<Cell> adjacent_list[], int max_connect, vector<Cell> &global_cell_list,
+double x_coord, double y_coord, int width, int height)
 {
 	int cell_count_p1;
 	int cell_count_p2;
 	vector<Cell> cell_list_p1;
 	vector<Cell> cell_list_p2;
-	if(cell_count < 500)
+	if(cell_count < 10)
 	{
 	//	cell_count_p1 = cell_list_p1.size();
 	//	cell_count_p2 = cell_list_p2.size();
@@ -41,12 +154,17 @@ int net_count, int cut_size, vector<Cell> adjacent_list[], int max_connect, vect
 	if(p_type == 0) p_type=1;
 	else p_type = 0;
 	int threshold = (0.1*cell_count)+1;
+	
+	double x_coord1, x_coord2, y_coord1, y_coord2;
+	int h1, w1;
+	
 //	cout<<"final p_type: "<<p_type<<endl;
 	if(p_type == 0)
 		cout<<"Performing horizontal cut\n";
 	else 
 		cout<<"Performing vertical cut\n";
-	apply_FM_Algorithm(cell_list,cell_count,cell_net_list,detailed_net_list ,net_count,cut_size,adjacent_list,cut_size,max_connect,cell_list_p1,cell_list_p2,p_type,global_cell_list);
+	apply_FM_Algorithm(cell_list,cell_count,cell_net_list,detailed_net_list ,net_count,cut_size,adjacent_list,cut_size,max_connect,
+	cell_list_p1,cell_list_p2,p_type,global_cell_list,x_coord,y_coord,width,height);
 	
 	//int cell_count_p1;
 	//int cell_count_p2;
@@ -64,11 +182,32 @@ int net_count, int cut_size, vector<Cell> adjacent_list[], int max_connect, vect
 		cout<<"p2 x coord: "<<cell_list_p2[0].x_dim<<"p2 y coord: "<<cell_list_p2[0].y_dim<<endl;
 	}	
 	
-	min_cut_placement(cell_count_p1, cell_list_p1, p_type, count_threshold, cell_net_list,detailed_net_list,net_count,cut_size,adjacent_list,max_connect,global_cell_list);
+	if(p_type ==1)
+	{
+		//vertical cut
+		x_coord1 = x_coord - width/4;
+		width = width/2;
+		x_coord2 = x_coord + width/4; 
+		y_coord1 = y_coord;
+		y_coord2 = y_coord;
+	}
+	else if (p_type == 0)
+	{
+		//Horizontal cut
+		y_coord1 = y_coord - height/4;
+		height = height/2;
+		y_coord2 = y_coord + height/4;
+		x_coord1 = x_coord;
+		x_coord2 = x_coord;
+	}
+	
+	min_cut_placement(cell_count_p1, cell_list_p1, p_type, count_threshold, cell_net_list,detailed_net_list,net_count,cut_size,adjacent_list,
+	max_connect,global_cell_list, x_coord1,y_coord1, width, height);
 	cell_list_p1.clear();
 	cell_list_p1.shrink_to_fit();
 	
-	min_cut_placement(cell_count_p2, cell_list_p2, p_type, count_threshold, cell_net_list,detailed_net_list,net_count,cut_size,adjacent_list,max_connect,global_cell_list);
+	min_cut_placement(cell_count_p2, cell_list_p2, p_type, count_threshold, cell_net_list,detailed_net_list,net_count,cut_size,adjacent_list,
+	max_connect,global_cell_list,x_coord2,y_coord2, width, height );
 	cell_list_p2.clear();
 	cell_list_p2.shrink_to_fit();
 //	cell_count_p1 = cell_list_p1.size();
@@ -127,7 +266,7 @@ int main()
 	//cout<<"netlist: "<<endl;
 	//print_func_2(net_list,net_count);
 	//----------------------------------------------------------
-	bool cell_record[cell_count]= {false};
+	//bool cell_record[cell_count]= {false};
 	
 	//--Creating detailed netlist----------------------------------
 	create_detailed_netlist(detailed_net_list,net_list,net_count);
@@ -185,7 +324,7 @@ int main()
 	//print_detailed_netlist(detailed_net_list,net_count);
 	//self cost is calculated by using reduced adjacent list
 	//selfCost = self_cost(4,5,reduced_adjacent_list,cell_count,weight);
-	//cut_size = calculate_cutsize(detailed_net_list,net_count);
+	cut_size = calculate_cutsize(detailed_net_list,net_count);
 	//cout<<"External_Cost: "<<external_cost<<" Internal Cost: "<<internal_cost<<" Self Cost: "<<selfCost<<" cut size:"<<cut_size<<endl;
 	//cout<<"initial cut size: "<<cut_size<<endl;
 	int only_net_count = only_cell(5,2,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
@@ -213,11 +352,33 @@ int main()
 		vector<Cell> cell_ptr_p1;
 		vector<Cell> cell_ptr_p2;
 		bool p_type=0; //Horizontal
+		
+		double x_coord_init = chip_width/2;
+		double y_coord_init = chip_height/2;
+		double init_height = chip_height;
+		double init_width = chip_width;
 	//	cout<<global_cell_list[119]->cell_id<<endl;
 		//cout<<"cell location "<<global_cell_list[0]->x_dim<<endl;
-		//apply_FM_Algorithm(cell_list,cell_count,cell_net_list,detailed_net_list,net_count,cut_size,adjacent_list,cut_size,max_connect,cell_ptr_p1,cell_ptr_p2,p_type,global_cell_list);
+	//	apply_FM_Algorithm(cell_list,cell_count,cell_net_list,detailed_net_list,net_count,cut_size,adjacent_list,cut_size,max_connect,cell_ptr_p1,
+	//	cell_ptr_p2,p_type,global_cell_list1,x_coord_init,y_coord_init,init_height,init_width);
 		//cout<<"size p1: "<<cell_ptr_p1.size()<<" size p2: "<<cell_ptr_p2.size()<<"x_dim: "<<cell_ptr_p2[1].x_dim<<endl;
-		min_cut_placement(cell_count,cell_list,p_type,threshold,cell_net_list,detailed_net_list,net_count,cut_size,adjacent_list,max_connect,global_cell_list1);
+		
+		
+		//min_cut_placement(cell_count,cell_list,p_type,threshold,cell_net_list,detailed_net_list,net_count,cut_size,adjacent_list,
+		//max_connect,global_cell_list1,x_coord_init,y_coord_init,init_height,init_width);
+		bool p_type_bfs=1;	
+		min_cut_placement_bfs(cell_count,cell_list,p_type_bfs,threshold,cell_net_list,detailed_net_list,net_count,cut_size,adjacent_list,
+		max_connect,global_cell_list1,x_coord_init,y_coord_init,init_height,init_width);
+		
+		ofstream output_file;
+		output_file.open("data1.csv");
+		
+		output_file<<"x,y\n";
+		for(int i=0; i<global_cell_list1.size(); i++)
+		{
+			output_file<<global_cell_list1[i].x_dim<<","<<global_cell_list1[i].y_dim<<endl;
+		}
+		output_file.close();	
 		/*
 		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,cut_size,threshold,adjacent_list,cut_size,max_connect,0,cell_count/8);
 		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,cut_size,threshold,adjacent_list,cut_size,max_connect,cell_count/8 + 1,cell_count/4);
