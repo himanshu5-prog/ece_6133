@@ -2,6 +2,18 @@
 #include<vector>
 using namespace std;
 
+void print_bucket_ds (map<int,unordered_set<int>> bucket_ds, int max_connect)
+{
+	for(int p= max_connect; p>= -max_connect; p--)
+	{	
+		cout<<p<<" -> ";
+		for(auto it = bucket_ds[p].begin(); it!= bucket_ds[p].end(); it++)
+		{
+			cout<<*it<<" ";
+		}
+		cout<<endl;
+	}
+}
 void print_func (vector<int> net_list[], int net_size)
 {
 	for(int i=0;i<net_size;i++)
@@ -125,4 +137,48 @@ void print_cell_netlist(vector<int> cell_net_list[], int cell_count)
 		cout<<endl;
 	}
 	cout<<endl;
+}
+
+void print_netDistr(int **netDistr, int net_count)
+{
+	for(int i=0;i<net_count;i++)
+	{
+		cout<<netDistr[i][0]<<" , "<<netDistr[i][1]<<endl;
+	}
+}
+
+void print_gain(map<int,int> gain, int cell_count)
+{
+	cout<<"Gain: \n";
+	cout<<"size: "<<gain.size()<<endl;
+	
+	map<int,int>::iterator itr;
+	for(auto itr=gain.begin();itr!=gain.end();itr++)
+	{
+		cout<<itr->first<<"-> ";
+		cout<<itr->second<<endl;
+	}
+	
+}
+
+void print_bucket_ds( vector<int> bucket_ds[], int bucket_size, int max_connect)
+{
+	cout<<"Bucket data structure:\n";
+	for(int i=0; i<bucket_size;i++)
+	{
+		cout<<i-max_connect<<" : ";
+		for(int j=0;j<bucket_ds[i].size();j++)
+		{
+			cout<<bucket_ds[i][j]<<" ";
+		}
+		cout<<endl;
+	}
+}
+
+void print_vector(vector<int> vec1, vector<int> vec2, vector<int> vec3)
+{
+	for(int i=0;i<vec1.size();i++)
+	{
+		cout<<vec1[i]<<" "<<vec2[i]<<" "<<vec3[i]<<endl;
+	}
 }

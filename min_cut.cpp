@@ -10,18 +10,19 @@
 #include "fileRead.h"
 #include "print_functions.h"
 #include "create_data_structure.h"
+#include "fm_algo_2.h"
 //#include "kl_algo.h"
 #include<vector>
 #include<string>
 #include "fm_algo.h"
 using namespace std;
-string file_name = "structP.hgr";
+string file_name = "industry3.hgr";
 //int chip_height = 1000;
 //int  chip_width = 1000;
 
 void min_cut_placement_bfs(int cell_count, vector<Cell> &cell_list,bool p_type, int count_threshold, vector<int> cell_net_list[], vector<Cell> detailed_net_list[],
 int net_count, int cut_size, vector<Cell> adjacent_list[], int max_connect, vector<Cell> &global_cell_list,
-double x_coord, double y_coord, double width, double height)
+double x_coord, double y_coord, double width, double height, int mode, double delta, vector<int> net_list[])
 {
 	queue< vector<Cell> > q_cell_list;
 	
@@ -148,7 +149,11 @@ double x_coord, double y_coord, double width, double height)
 				//cout<<"Performing Vertival cut\n";
 				if(start==true)
 				{
-					apply_FM_Algorithm(cell_list_present,cell_count_present,cell_net_list,detailed_net_list ,net_count,cut_size,adjacent_list,cut_size,max_connect,cell_list_p1,cell_list_p2,p_type,global_cell_list,x_coord1,y_coord1,width,height);
+				apply_FM_Algorithm_5(cell_list_present,cell_count_present,cell_net_list,detailed_net_list ,net_count,cut_size,adjacent_list,max_connect,cell_list_p1,
+		cell_list_p2,p_type,global_cell_list,
+		x_coord1,y_coord1,width,height, mode, delta, net_list);
+				//	apply_FM_Algorithm(cell_list_present,cell_count_present,cell_net_list,detailed_net_list ,net_count,cut_size,adjacent_list,cut_size,
+				//max_connect,cell_list_p1,cell_list_p2,p_type,global_cell_list,x_coord1,y_coord1,width,height, mode, delta);
 					start=false;
 				}
 				else if (p_type == 0)
@@ -164,7 +169,13 @@ double x_coord, double y_coord, double width, double height)
                                                 }
                                         }
 				//	h_temp = h_temp/2;		
-					apply_FM_Algorithm(cell_list_present,cell_count_present,cell_net_list,detailed_net_list ,net_count,cut_size,adjacent_list,cut_size,max_connect,cell_list_p1,cell_list_p2,p_type,global_cell_list, cell_list_present[p].x_dim, cell_list_present[p].y_dim, width, h_temp);
+					apply_FM_Algorithm_5(cell_list_present,cell_count_present,cell_net_list,detailed_net_list ,net_count,cut_size,adjacent_list,
+					max_connect,cell_list_p1,
+		cell_list_p2,p_type,global_cell_list,
+		cell_list_present[p].x_dim,  cell_list_present[p].y_dim,width,h_temp, mode, delta, net_list);
+					//apply_FM_Algorithm(cell_list_present,cell_count_present,cell_net_list,detailed_net_list ,net_count,cut_size,adjacent_list,
+					//cut_size,max_connect,cell_list_p1,cell_list_p2,p_type,global_cell_list, cell_list_present[p].x_dim, cell_list_present[p].y_dim,
+					// width, h_temp, mode, delta);
 				}
 				else if (p_type == 1)
 				{
@@ -178,7 +189,11 @@ double x_coord, double y_coord, double width, double height)
 						}
 					}
 				//	w_temp = w_temp/2;
-					apply_FM_Algorithm(cell_list_present,cell_count_present,cell_net_list,detailed_net_list ,net_count,cut_size,adjacent_list,cut_size,max_connect,cell_list_p1,cell_list_p2,p_type,global_cell_list, cell_list_present[z].x_dim, cell_list_present[z].y_dim, w_temp, height);
+				apply_FM_Algorithm_5(cell_list_present,cell_count_present,cell_net_list,detailed_net_list ,net_count,cut_size,adjacent_list,max_connect,cell_list_p1,
+		cell_list_p2,p_type,global_cell_list,
+		cell_list_present[z].x_dim,cell_list_present[z].y_dim, w_temp, height, mode, delta, net_list);
+				//	apply_FM_Algorithm(cell_list_present,cell_count_present,cell_net_list,detailed_net_list ,net_count,cut_size,adjacent_list,cut_size,
+				//max_connect,cell_list_p1,cell_list_p2,p_type,global_cell_list, cell_list_present[z].x_dim, cell_list_present[z].y_dim, w_temp, height, mode, delta);
 				}
 				cell_count_p1 = cell_list_p1.size();
 				cell_count_p2 = cell_list_p2.size();
@@ -210,7 +225,7 @@ double x_coord, double y_coord, double width, double height)
 
 void min_cut_placement(int cell_count, vector<Cell> &cell_list,bool p_type, int count_threshold, vector<int> cell_net_list[], vector<Cell> detailed_net_list[],
 int net_count, int cut_size, vector<Cell> adjacent_list[], int max_connect, vector<Cell> &global_cell_list,
-double x_coord, double y_coord, int width, int height)
+double x_coord, double y_coord, int width, int height, int mode, double delta, vector<int> net_list[])
 {
 	int cell_count_p1;
 	int cell_count_p2;
@@ -241,8 +256,13 @@ double x_coord, double y_coord, int width, int height)
 		cout<<"Performing horizontal cut\n";
 	else 
 		cout<<"Performing vertical cut\n";
-	apply_FM_Algorithm(cell_list,cell_count,cell_net_list,detailed_net_list ,net_count,cut_size,adjacent_list,cut_size,max_connect,
-	cell_list_p1,cell_list_p2,p_type,global_cell_list,x_coord,y_coord,width,height);
+		
+		apply_FM_Algorithm_5(cell_list,cell_count,cell_net_list,detailed_net_list ,net_count,cut_size,adjacent_list,max_connect,cell_list_p1,
+		cell_list_p2,p_type,global_cell_list,
+		x_coord,y_coord,width,height, mode, delta, net_list);
+		
+	//apply_FM_Algorithm(cell_list,cell_count,cell_net_list,detailed_net_list ,net_count,cut_size,adjacent_list,cut_size,max_connect,
+	//cell_list_p1,cell_list_p2,p_type,global_cell_list,x_coord,y_coord,width,height, mode , delta);
 	
 	//int cell_count_p1;
 	//int cell_count_p2;
@@ -284,12 +304,12 @@ double x_coord, double y_coord, int width, int height)
 	}
 	
 	min_cut_placement(cell_count_p1, cell_list_p1, p_type, count_threshold, cell_net_list,detailed_net_list,net_count,cut_size,adjacent_list,
-	max_connect,global_cell_list, x_coord1,y_coord1, width, height);
+	max_connect,global_cell_list, x_coord1,y_coord1, width, height, mode, delta, net_list);
 	cell_list_p1.clear();
 	cell_list_p1.shrink_to_fit();
 	
 	min_cut_placement(cell_count_p2, cell_list_p2, p_type, count_threshold, cell_net_list,detailed_net_list,net_count,cut_size,adjacent_list,
-	max_connect,global_cell_list,x_coord2,y_coord2, width, height );
+	max_connect,global_cell_list,x_coord2,y_coord2, width, height, mode, delta, net_list);
 	cell_list_p2.clear();
 	cell_list_p2.shrink_to_fit();
 //	cell_count_p1 = cell_list_p1.size();
@@ -386,6 +406,10 @@ int main()
 	initialise(detailed_net_list,net_count,adjacent_list,cell_count);
 	//cout<<"test"<<endl;
 	
+	
+	
+	
+	
 	//create_cell_list(cell_list,cell_count,detailed_net_list,net_count);
 	create_cell_list_2(cell_list,cell_count,detailed_net_list,net_count,cell_ptr_list);
 	create_global_cell_list(cell_list,global_cell_list,cell_count);
@@ -408,7 +432,7 @@ int main()
 	//selfCost = self_cost(4,5,reduced_adjacent_list,cell_count,weight);
 	cut_size = calculate_cutsize(detailed_net_list,net_count);
 	//cout<<"External_Cost: "<<external_cost<<" Internal Cost: "<<internal_cost<<" Self Cost: "<<selfCost<<" cut size:"<<cut_size<<endl;
-	//cout<<"initial cut size: "<<cut_size<<endl;
+	cout<<"initial cut size: "<<cut_size<<endl;
 	int only_net_count = only_cell(5,2,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
 	int all_cell = all_present_single_partition(5,2,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
 	//cout<<"only_net_count: "<<only_net_count<<" all_Cell: "<<all_cell<<endl;
@@ -445,12 +469,231 @@ int main()
 	//	cell_ptr_p2,p_type,global_cell_list1,x_coord_init,y_coord_init,init_height,init_width);
 		//cout<<"size p1: "<<cell_ptr_p1.size()<<" size p2: "<<cell_ptr_p2.size()<<"x_dim: "<<cell_ptr_p2[1].x_dim<<endl;
 		
+		int mode = 0;
+		double delta=0;	
 		
-		//min_cut_placement(cell_count,cell_list,p_type,threshold,cell_net_list,detailed_net_list,net_count,cut_size,adjacent_list,
-		//max_connect,global_cell_list1,x_coord_init,y_coord_init,init_height,init_width);
+	//	apply_FM_Algorithm(cell_list,cell_count,cell_net_list,detailed_net_list ,net_count,cut_size,adjacent_list,cut_size,max_connect,cell_ptr_p1,
+	//	cell_ptr_p2,p_type,global_cell_list1,
+	//	x_coord_init,y_coord_init,init_width,init_height, mode, delta);
+	
+	  
+	//	min_cut_placement(cell_count,cell_list,p_type,threshold,cell_net_list,detailed_net_list,net_count,cut_size,adjacent_list,
+	//	max_connect,global_cell_list1,x_coord_init,y_coord_init,init_width,init_height, mode,delta,net_list);
+	
+		//double x_coord, double y_coord, int width, int height, int mode, double delta, vector<int> net_list[])
 		bool p_type_bfs=1;	
+		
 		min_cut_placement_bfs(cell_count,cell_list,p_type_bfs,threshold,cell_net_list,detailed_net_list,net_count,cut_size,adjacent_list,
-		max_connect,global_cell_list1,x_coord_init,y_coord_init,init_height,init_width);
+		max_connect,global_cell_list1,x_coord_init,y_coord_init,init_width,init_height, mode,delta,net_list);
+		//min_cut_placement_bfs(cell_count,cell_list,p_type_bfs,threshold,cell_net_list,detailed_net_list,net_count,cut_size,adjacent_list,
+		//max_connect,global_cell_list1,x_coord_init,y_coord_init,init_height,init_width, mode, delta);
+		
+		//cout<<"Initial P1 Count: "<<get_partition_count_5(cell_list,1)<<" P2 Count: "<<get_partition_count_5(cell_list,2)<<endl;
+		
+		
+	/*	
+		apply_FM_Algorithm_5(cell_list,cell_count,cell_net_list,detailed_net_list ,net_count,cut_size,adjacent_list,max_connect,cell_ptr_p1,
+		cell_ptr_p2,p_type,global_cell_list1,
+		x_coord_init,y_coord_init,init_width,init_height, mode, delta, net_list);
+		
+	
+		update_detailed_netlist_55(cell_list,detailed_net_list,net_count);
+		cout<<"\nFinal P1 Count: "<<get_partition_count_5(cell_list,1)<<" P2 Count: "<<get_partition_count_5(cell_list,2)<<
+		" cut size: "<<calculate_cutsize_5(detailed_net_list,net_count)<<endl;
+		
+		cout<<"cell_list1 size: "<<cell_ptr_p1.size()<<" cell_list2 size: "<<cell_ptr_p2.size()<<endl;
+		cout<<"cell_list p1 x_dim: "<<cell_ptr_p1[0].x_dim<<" cell_list p1 y_dim: "<<cell_ptr_p1[0].y_dim<<endl;
+		cout<<"cell_list p2 x_dim: "<<cell_ptr_p2[0].x_dim<<" cell_list p2 y_dim: "<<cell_ptr_p2[0].y_dim<<endl;
+	*/	
+		
+		
+		//-------------------------------------------------------------------------------------------------------------------------------
+	/*
+		int **netDistribution = new int*[net_count];
+		map<int,int> gain;
+		for(int i=0;i<net_count;i++)
+		{
+			netDistribution[i] = new int [2];
+			netDistribution[i][0] = 0;
+			netDistribution[i][1] = 0;
+		}
+		create_net_distribution(net_list,netDistribution,net_count);
+		//print_netDistr(netDistribution,net_count);
+		calculate_initial_gain(netDistribution,net_count,gain,cell_count,cell_net_list,global_cell_list1,cell_list);
+	//	cout<<"size: "<<gain.size()<<endl;
+		//print_gain(gain,cell_count);
+		
+		int max_gain=0,max_pos=0;
+		vector<int> movement;
+		vector<int> movementGain;
+		vector<int> movementGainSum;
+		
+		//print_cell_list_5(cell_list);
+		//print_netDistr(netDistribution,net_count);
+		//print_gain(gain,cell_count);
+		vector<Cell> cell_list_old;
+		
+		int diff;
+		
+		do
+		{
+			cell_list_old = cell_list;
+		FM_Algorithm_single_pass_3(cell_list,cell_count,cell_net_list,detailed_net_list ,net_count,adjacent_list,max_connect, 
+		global_cell_list1, gain, netDistribution,movement,movementGain,movementGainSum);
+		
+		//print_cell_list_5(cell_list);
+		for(int i=0;i<movementGainSum.size();i++)
+		{
+			if(i==0)
+			{
+				max_pos=0;
+				max_gain = movementGainSum[0];
+			}
+			else
+			{
+				if(max_gain < movementGainSum[i])
+				{
+					max_gain = movementGainSum[i];
+					max_pos = i;
+				}
+			}
+		}
+		
+		cout<<"max_gain: "<<max_gain<<" max_pos: "<<max_pos<<endl;
+		
+		if(max_gain < 0)
+			max_pos = 0;
+			
+		
+		int cell_id2;
+		int dest_p_id;
+		for(int i=0; i<= max_pos;i++)
+		{
+			cell_id2 = movement[i];
+			
+			if(cell_list[cell_id2 - 1].partition_id == 1 )
+			{
+				cell_list[cell_id2 - 1].partition_id =2;
+				global_cell_list1[cell_id2 - 1].partition_id =2;
+			}
+			else if(cell_list[cell_id2 - 1].partition_id == 2 )
+			{
+				cell_list[cell_id2 - 1].partition_id = 1;
+				global_cell_list1[cell_id2 - 1].partition_id =2;
+			}
+		}
+		
+		update_detailed_netlist_55(cell_list,detailed_net_list,net_count);
+		int new_cut_size = calculate_cutsize(detailed_net_list,net_count);
+		cout<<"new cut size: "<<new_cut_size<<endl;
+		
+		update_net_distribution(cell_net_list,netDistribution,net_count,cell_count,cell_list);
+		gain.clear();
+		calculate_initial_gain(netDistribution,net_count,gain,cell_count,cell_net_list,global_cell_list1,cell_list);
+		
+		//print_gain(gain,cell_count);
+		
+		
+		diff = cut_size - new_cut_size;
+		cout<<"diff: "<<diff<<endl;
+		cut_size = new_cut_size;
+		movement.clear();
+		movementGain.clear();
+		movementGainSum.clear();
+	}while(diff > 0);
+	
+	if(diff < 0)
+	{
+		cout<<"Negative diff!!\n";
+		update_net_distribution(cell_net_list,netDistribution,net_count,cell_count,cell_list_old);
+		update_detailed_netlist_55(cell_list_old,detailed_net_list,net_count);
+		int new_cut_size = calculate_cutsize(detailed_net_list,net_count);
+		cout<<"new cut size: "<<new_cut_size<<endl;
+		cout<<"p1 count: "<<get_partition_count_5(cell_list_old,1)<<" p2_count: "<<get_partition_count_5(cell_list_old,2)<<endl;
+	}
+	
+	*/
+		//print_netDistr(netDistribution,net_count);
+		//print_cell_list_5(cell_list);
+	
+	
+	/*
+		int cell_id2;
+		int dest_p_id;
+		int diff=0;
+		print_gain(gain,cell_count);	
+		do
+		{
+				FM_Algorithm_single_pass(cell_list,cell_count,cell_net_list,detailed_net_list ,net_count,cut_size,adjacent_list,cut_size,max_connect,cell_ptr_p1,
+		cell_ptr_p2,p_type,global_cell_list1,
+		x_coord_init,y_coord_init,init_width,init_height, mode, delta, 
+		gain, netDistribution,movement,movementGain,movementGainSum);
+		
+		//print_cell_list_5(cell_list);
+		for(int i=0;i<movementGainSum.size();i++)
+		{
+			if(i==0)
+			{
+				max_pos=0;
+				max_gain = movementGainSum[0];
+			}
+			else
+			{
+				if(max_gain < movementGainSum[i] && max_gain > 0)   
+				{
+					max_gain = movementGainSum[i];
+					max_pos = i;
+				}
+			}
+		}
+		
+		cout<<"max_gain: "<<max_gain<<" max_pos: "<<max_pos<<endl;
+		
+		if(max_gain < 0)
+			max_pos = 0;
+		for(int i=0; i<= max_pos;i++)
+		{
+			cell_id2 = movement[i];
+			
+			if(cell_list[cell_id2 - 1].partition_id == 1 )
+			{
+				cell_list[cell_id2 - 1].partition_id =2;
+				global_cell_list1[cell_id2 - 1].partition_id =2;
+			}
+			
+			else if(cell_list[cell_id2 - 1].partition_id == 2 )
+			{
+				cell_list[cell_id2 - 1].partition_id = 1;
+				global_cell_list1[cell_id2 - 1].partition_id =1;
+			}
+		}
+		
+		update_detailed_netlist_55(cell_list,detailed_net_list,net_count);
+		int new_cut_size = calculate_cutsize(detailed_net_list,net_count);
+		cout<<"new cut size: "<<new_cut_size<<endl;
+		update_net_distribution(cell_net_list,netDistribution,net_count,cell_count,cell_list);
+		gain.clear();	
+		calculate_initial_gain(netDistribution,net_count,gain,cell_count,cell_net_list,global_cell_list1);
+			print_gain(gain,cell_count);
+		diff = cut_size - new_cut_size ;
+		cout<<"diff: "<<diff<<endl;
+		cut_size = new_cut_size;
+		movement.clear();
+		movementGain.clear();
+		movementGainSum.clear();
+		max_pos =0;
+		max_gain=0;
+		
+		} while(diff > 0);
+		
+		*/
+	//	cout<<movement.size()<<" "<<movementGain.size()<<endl;
+		//print_vector(movement,movementGain,movementGainSum);
+		unsigned int wire_len = compute_wirelength(detailed_net_list,global_cell_list1,net_count);
+		
+		
+		cout<<"Wirelength: "<<wire_len<<endl;
+		
 		
 		ofstream output_file;
 		output_file.open("data1.csv");
@@ -460,46 +703,10 @@ int main()
 		{
 			output_file<<global_cell_list1[i].x_dim<<","<<global_cell_list1[i].y_dim<<endl;
 		}
-		output_file.close();	
-		/*
-		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,cut_size,threshold,adjacent_list,cut_size,max_connect,0,cell_count/8);
-		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,cut_size,threshold,adjacent_list,cut_size,max_connect,cell_count/8 + 1,cell_count/4);
-		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,cut_size,threshold,adjacent_list,cut_size,max_connect,cell_count/4 + 1,(3*cell_count)/8);
-		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,cut_size,threshold,adjacent_list,cut_size,max_connect,((3*cell_count)/8) + 1,cell_count/2);
+		output_file.close();
+		
 	
-		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,cut_size,threshold,adjacent_list,cut_size,max_connect, (cell_count/2) + 1,(5*cell_count)/8);
-		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,cut_size,threshold,adjacent_list,cut_size,max_connect, (5*cell_count)/8 + 1,(3*cell_count)/4);
-		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,cut_size,threshold,adjacent_list,cut_size,max_connect,(3*cell_count)/4 + 1, (7*cell_count)/8 );
-		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,cut_size,threshold,adjacent_list,cut_size,max_connect,(7*cell_count)/8 + 1,cell_count);
-		*/
-	//}
-	//print_detailed_netlist(detailed_net_list,net_count);
-	//KL_Algorithm(cell_list,adjacent_list,reduced_adjacent_list,cell_count,weight, detailed_net_list,net_count,cut_size);
-//	print_detailed_netlist(detailed_net_list,net_count);
-	//print_cell_list(cell_list);
-	//cout<<"reduced adj list before:"<<endl;
-	//print_adj_list(reduced_adjacent_list,cell_count);
-	//update_partition(5,1,cell_list,detailed_net_list,adjacent_list,reduced_adjacent_list,cell_count,net_count);
-	//cut_size = calculate_cutsize(detailed_net_list,net_count);
-	//cout<<"New cut size: "<<cut_size;
-	//cout<<"reduced adj list after"<<endl;
-//	print_adj_list(adjacent_list,cell_count);
-	//----------
-	//vector<Cell> neighbor = report_neighbors(1,reduced_adjacent_list,cell_count);
-	//print_cell_list(neighbor);
-	//-----------------
-	
-	//print_detailed_netlist(detailed_net_list,net_count);
-	//print_cell_list(cell_list);
-	//print_partition_list(partition_2);
-	//modify_adj_list(adjacent_list,cell_count,detailed_net_list,net_count);
-	//Printing to check partition assignment------------------------------------------------------------------
-	//cout<<"Adj list: "<<endl;
-	//print_adj_list(adjacent_list,cell_count);
-	//cout<<"Reduced adj list: "<<endl;
-	//print_adj_list(reduced_adjacent_list,cell_count);
-	//-------------------------------------------------------------------------------------------------------
-	
+
 	
 	return 0;
 	

@@ -5,6 +5,7 @@ using namespace std;
 //int chip_height = 1000;
 //int  chip_width = 1000;
 
+/*
 template<typename KeyType, typename ValueType> 
 std::pair<KeyType,ValueType> get_max( const std::map<KeyType,ValueType>& x ) {
   using pairtype=std::pair<KeyType,ValueType>; 
@@ -13,6 +14,7 @@ std::pair<KeyType,ValueType> get_max( const std::map<KeyType,ValueType>& x ) {
   }); 
 }
 
+*/
 void update_sub_cell_list(vector<Cell> cell_list, vector<Cell> &cell_list_p1, vector<Cell> &cell_list_p2, int p1, int p2)
 {
 	for(int i=0; i<cell_list.size();i++)
@@ -361,7 +363,7 @@ vector<Cell> detailed_net_list[], int net_count)
 //-----------
 int
 only_cell_2(int index, int partition_id, vector<int> cell_net_list[], int cell_count, vector<Cell> cell_list, 
-vector<Cell> detailed_net_list[], int net_count, vector<Cell> global_cell_list)
+vector<Cell> detailed_net_list[], int net_count, vector<Cell> global_cell_list, bool p_type, int mode, double delta, double width, double height)
 
 {
 	int net_id;
@@ -374,6 +376,7 @@ vector<Cell> detailed_net_list[], int net_count, vector<Cell> global_cell_list)
 	//int index = cell_id - 1;
 	assert(index >= 0);
 	bool v=false;
+	int inactive_cell_p_id=0;
 	int cell_id = cell_list[index].cell_id;
 	for(int i=0;i<cell_net_list[cell_id - 1].size();i++)
 	{
@@ -412,6 +415,49 @@ vector<Cell> detailed_net_list[], int net_count, vector<Cell> global_cell_list)
 					
 					break;
 				}
+			}
+			
+			else if(global_cell_list[cell_id_det - 1].active == false && mode == 3)
+			{
+				//Terminal propogation window is 0
+				//Cell is outside the active partition
+				if(p_type == 0)
+				{
+					//Horizontal partition
+					//cell_id_det is not in active region
+					if(global_cell_list[cell_id_det - 1].y_dim > cell_list[index].y_dim + delta &&
+					compute_abs_diff( global_cell_list[cell_id_det - 1].y_dim, cell_list[index].y_dim) >= height*delta/2 )
+					{
+						inactive_cell_p_id = 1;
+					}
+					else if (global_cell_list[cell_id_det - 1].y_dim < cell_list[index].y_dim + delta &&
+					compute_abs_diff( global_cell_list[cell_id_det - 1].y_dim, cell_list[index].y_dim) >= height*delta/2  )
+					{
+						inactive_cell_p_id = 2;
+					}	
+				}
+				
+				else if(p_type == 1)
+				{
+					//Vertical partition
+					//Cell is outside the active partition area
+					if(global_cell_list[cell_id_det - 1].x_dim > cell_list[index].x_dim + delta &&
+					compute_abs_diff( global_cell_list[cell_id_det - 1].x_dim, cell_list[index].x_dim) >= width*delta/2 )
+					{
+						inactive_cell_p_id = 2;
+					}
+					else if (global_cell_list[cell_id_det - 1].x_dim < cell_list[index].x_dim + delta &&
+					compute_abs_diff( global_cell_list[cell_id_det - 1].x_dim, cell_list[index].x_dim) >= width*delta/2 )
+					{
+						inactive_cell_p_id = 1;
+					}
+				}
+				
+				if( partition_id == inactive_cell_p_id)
+				{
+					diff = false;
+					break;
+				}	
 			}
 			//}
 		}
@@ -532,13 +578,15 @@ vector<Cell> detailed_net_list[], int net_count, vector<Cell> &global_cell_list 
 
 
 void update_cell_list_fm_only_cell_net_count_2 (int index, int partition_id, vector<int> cell_net_list[], int cell_count, vector<Cell> &cell_list, 
-vector<Cell> detailed_net_list[], int net_count, vector<Cell> &global_cell_list)
+vector<Cell> detailed_net_list[], int net_count, vector<Cell> &global_cell_list, bool p_type, int mode, double delta, double width, double height)
 {
 	int net_id;
 	int	net_num_only =0;
 	//net_num_all =0;
 	int cell_id_det;
 	bool diff=false;
+	
+	int inactive_cell_p_id;
 	//bool same=false;
 	//Cell_list is updated
 	//int index = cell_id - 1;
@@ -572,6 +620,49 @@ vector<Cell> detailed_net_list[], int net_count, vector<Cell> &global_cell_list)
 					break;
 				}
 				
+			}
+			
+			else if(global_cell_list[cell_id_det - 1].active == false && mode == 3)
+			{
+				//Terminal propogation window is 0
+				//Cell is outside the active partition
+				if(p_type == 0)
+				{
+					//Horizontal partition
+					//cell_id_det is not in active region
+					if(global_cell_list[cell_id_det - 1].y_dim > cell_list[index].y_dim && 
+					compute_abs_diff( global_cell_list[cell_id_det - 1].y_dim, cell_list[index].y_dim) >= height*delta/2  )
+					{
+						inactive_cell_p_id = 1;
+					}
+					else if (global_cell_list[cell_id_det - 1].y_dim < cell_list[index].y_dim && 
+					compute_abs_diff( global_cell_list[cell_id_det - 1].y_dim, cell_list[index].y_dim) >= height*delta/2)
+					{
+						inactive_cell_p_id = 2;
+					}	
+				}
+				
+				else if(p_type == 1)
+				{
+					//Vertical partition
+					//Cell is outside the active partition area
+					if(global_cell_list[cell_id_det - 1].x_dim > cell_list[index].x_dim && 
+					compute_abs_diff( global_cell_list[cell_id_det - 1].x_dim, cell_list[index].x_dim) >= width*delta/2)
+					{
+						inactive_cell_p_id = 2;
+					}
+					else if (global_cell_list[cell_id_det - 1].x_dim < cell_list[index].x_dim && 
+					compute_abs_diff( global_cell_list[cell_id_det - 1].x_dim, cell_list[index].x_dim) >= width*delta/2)
+					{
+						inactive_cell_p_id = 1;
+					}
+				}
+				
+				if( partition_id == inactive_cell_p_id)
+				{
+					diff = false;
+					break;
+				}	
 			}
 		}
 		
@@ -746,7 +837,7 @@ vector<Cell> detailed_net_list[], int net_count )
 */
 
 void update_cell_list_all_cell_net_count_2(int index, int partition_id, vector<int> cell_net_list[], int cell_count, vector<Cell> &cell_list, 
-vector<Cell> detailed_net_list[], int net_count, vector<Cell> &global_cell_list)
+vector<Cell> detailed_net_list[], int net_count, vector<Cell> &global_cell_list, bool p_type, int mode, double delta, double width, double height)
 
 {
 	int net_id;
@@ -754,16 +845,17 @@ vector<Cell> detailed_net_list[], int net_count, vector<Cell> &global_cell_list)
 	//net_num_all =0;
 	int cell_id_det;
 	bool same=false;
+	int inactive_cell_p_id = 0;
 	//bool same=false;
 	//Cell_list is updated
 	//int index = cell_id - 1;
-	
+	//int inactive_cell_p_id = 0;
 	assert(index >= 0);
 	int cell_id = cell_list[index].cell_id;
 	assert(cell_id >= 1);
 	//vector<int> net_list;
 	bool v=false;
-	
+	//int inactive_cell_p_id;
 	for(int i=0;i<cell_net_list[index].size();i++)
 	{
 		net_id = cell_net_list[index][i];
@@ -783,13 +875,58 @@ vector<Cell> detailed_net_list[], int net_count, vector<Cell> &global_cell_list)
 				//{
 					if(global_cell_list[cell_id_det - 1].active == true)
 					{
-					if(partition_id != global_cell_list[cell_id_det - 1].partition_id)
-					{
-						same=false;
+						if(partition_id != global_cell_list[cell_id_det - 1].partition_id)
+						{
+							same=false;
 					
-						break;
+							break;
+						}
 					}
+					
+					else if(global_cell_list[cell_id_det - 1].active == false && mode == 3)
+					{		
+						//Terminal propogation window is 0
+						//Cell is outside the active partition
+						if(p_type == 0)
+						{
+							//Horizontal partition
+							//cell_id_det is not in active region
+							if(global_cell_list[cell_id_det - 1].y_dim > cell_list[index].y_dim &&
+							compute_abs_diff( global_cell_list[cell_id_det - 1].y_dim, cell_list[index].y_dim) >= height*delta/2   )
+							{
+								inactive_cell_p_id = 1;
+							}
+							else if (global_cell_list[cell_id_det - 1].y_dim < cell_list[index].y_dim &&
+							compute_abs_diff( global_cell_list[cell_id_det - 1].y_dim, cell_list[index].y_dim) >= height*delta/2  )
+							{
+								inactive_cell_p_id = 2;
+							}	
+						}
+				
+						else if(p_type == 1)
+						{
+							//Vertical partition
+							//Cell is outside the active partition area
+							if(global_cell_list[cell_id_det - 1].x_dim > cell_list[index].x_dim && 
+							compute_abs_diff( global_cell_list[cell_id_det - 1].x_dim, cell_list[index].x_dim) >= width*delta/2)
+							{
+								inactive_cell_p_id = 2;
+							}
+							else if (global_cell_list[cell_id_det - 1].x_dim < cell_list[index].x_dim && 
+							compute_abs_diff( global_cell_list[cell_id_det - 1].x_dim, cell_list[index].x_dim) >= width*delta/2)
+							{
+								inactive_cell_p_id = 1;
+							}
+						}
+				
+						if( partition_id != inactive_cell_p_id)
+						{
+							same = false;
+							break;
+						}	
 					}
+					
+					
 				//}
 				
 			}
@@ -805,6 +942,121 @@ vector<Cell> detailed_net_list[], int net_count, vector<Cell> &global_cell_list)
 	cell_list[index].all_same_partition_net_count = net_num_all;
 	global_cell_list[cell_id -1].all_same_partition_net_count = net_num_all;
 }
+
+
+//------------------------------------------------------------------------------------------------------------------------------
+void update_cell_list_all_cell_net_count_4(int index, int partition_id, vector<int> cell_net_list[], int cell_count, vector<Cell> &cell_list, 
+vector<Cell> detailed_net_list[], int net_count, vector<Cell> &global_cell_list, bool p_type, int mode, double delta, double width, double height,
+vector<int> bucket_ds[] , int max_connect)
+{
+	int net_id;
+	int	net_num_all =0;
+	//net_num_all =0;
+	int cell_id_det;
+	bool same=false;
+	int inactive_cell_p_id = 0;
+	//bool same=false;
+	//Cell_list is updated
+	//int index = cell_id - 1;
+	//int inactive_cell_p_id = 0;
+	assert(index >= 0);
+	int cell_id = cell_list[index].cell_id;
+	assert(cell_id >= 1);
+	
+	int gain_old;
+	//vector<int> net_list;
+	bool v=false;
+	//int inactive_cell_p_id;
+	for(int i=0;i<cell_net_list[index].size();i++)
+	{
+		net_id = cell_net_list[index][i];
+		//cout<<"net_id: "<<net_id<<endl;
+		same=true;
+		v = false;
+		for(int j=0;j<detailed_net_list[net_id].size();j++)
+		{
+			cell_id_det = detailed_net_list[net_id][j].cell_id;
+			v=true;
+			if(cell_id_det == cell_id)
+				continue;
+				
+			//gain_old = global_cell_list[cell_id_det - 1]
+			
+			else
+			{
+				//cout<<"cell in partition "<<cell_id_det<<"partition: "<<cell_list[cell_id_det - 1].partition_id<<endl;
+				//if(global_cell_id[cell_id_det - 1].x_dim == cell_id[index].x_dim && global_cell_list[cell_id_det - 1].y_dim != cell_list[index].y_dim)
+				//{
+					if(global_cell_list[cell_id_det - 1].active == true)
+					{
+						if(partition_id != global_cell_list[cell_id_det - 1].partition_id)
+						{
+							same=false;
+					
+							break;
+						}
+					}
+					
+					else if(global_cell_list[cell_id_det - 1].active == false && mode == 3)
+					{		
+						//Terminal propogation window is 0
+						//Cell is outside the active partition
+						if(p_type == 0)
+						{
+							//Horizontal partition
+							//cell_id_det is not in active region
+							if(global_cell_list[cell_id_det - 1].y_dim > cell_list[index].y_dim &&
+							compute_abs_diff( global_cell_list[cell_id_det - 1].y_dim, cell_list[index].y_dim) >= height*delta/2   )
+							{
+								inactive_cell_p_id = 1;
+							}
+							else if (global_cell_list[cell_id_det - 1].y_dim < cell_list[index].y_dim &&
+							compute_abs_diff( global_cell_list[cell_id_det - 1].y_dim, cell_list[index].y_dim) >= height*delta/2  )
+							{
+								inactive_cell_p_id = 2;
+							}	
+						}
+				
+						else if(p_type == 1)
+						{
+							//Vertical partition
+							//Cell is outside the active partition area
+							if(global_cell_list[cell_id_det - 1].x_dim > cell_list[index].x_dim && 
+							compute_abs_diff( global_cell_list[cell_id_det - 1].x_dim, cell_list[index].x_dim) >= width*delta/2)
+							{
+								inactive_cell_p_id = 2;
+							}
+							else if (global_cell_list[cell_id_det - 1].x_dim < cell_list[index].x_dim && 
+							compute_abs_diff( global_cell_list[cell_id_det - 1].x_dim, cell_list[index].x_dim) >= width*delta/2)
+							{
+								inactive_cell_p_id = 1;
+							}
+						}
+				
+						if( partition_id != inactive_cell_p_id)
+						{
+							same = false;
+							break;
+						}	
+					}
+					
+					
+				//}
+				
+			}
+		}
+		
+		if(same==true && v==true)
+			net_num_all++;
+		
+		//if(same==true)
+		//	net_num_all++
+	}
+	assert(net_num_all >= 0);
+	cell_list[index].all_same_partition_net_count = net_num_all;
+	global_cell_list[cell_id -1].all_same_partition_net_count = net_num_all;
+}
+//------------------------------------------------------------------------------------------------------------------------------
 
 int
 all_present_single_partition(int cell_id, int partition_id, vector<int> cell_net_list[], int cell_count, vector<Cell> cell_list, 
@@ -874,13 +1126,15 @@ vector<Cell> detailed_net_list[], int net_count)
 
 int
 all_present_single_partition_2(int index, int partition_id, vector<int> cell_net_list[], int cell_count, vector<Cell> cell_list, 
-vector<Cell> detailed_net_list[], int net_count, vector<Cell> global_cell_list)
+vector<Cell> detailed_net_list[], int net_count, vector<Cell> global_cell_list, bool p_type, int mode, double delta, double width, double height)
 {
 	int net_id;
 	int	net_num_all =0;
 	//net_num_all =0;
 	int cell_id_det;
 	bool same=false;
+//	double delta = 0;
+	int inactive_cell_p_id = 0;
 	//bool same=false;
 	//Cell_list is updated
 	//int index = cell_id - 1;
@@ -929,6 +1183,7 @@ vector<Cell> detailed_net_list[], int net_count, vector<Cell> global_cell_list)
 				//cout<<"cell in partition "<<cell_id_det<<"partition: "<<cell_list[cell_id_det - 1].partition_id<<endl;
 			//	assert(cell_id_det >= 1);
 				//assert(cell_id_det <= cell_count);
+				assert(global_cell_list[cell_id_det - 1].partition_id == 1 || global_cell_list[cell_id_det - 1].partition_id ==2);
 				if(partition_id != global_cell_list[cell_id_det - 1].partition_id)
 				{
 					same=false;
@@ -936,6 +1191,52 @@ vector<Cell> detailed_net_list[], int net_count, vector<Cell> global_cell_list)
 					break;
 				}
 				
+			}
+			else if(global_cell_list[cell_id_det - 1].active == false && mode == 3)
+			{
+				//Terminal propogation window is 0
+				//Cell is outside the active partition
+				if(p_type == 0)
+				{
+					
+					//Horizontal partition
+					//cell_id_det is not in active region
+					if(global_cell_list[cell_id_det - 1].y_dim >= cell_list[index].y_dim  && 
+					compute_abs_diff( global_cell_list[cell_id_det - 1].y_dim, cell_list[index].y_dim) >= height*delta/2    )
+					{
+						assert(compute_abs_diff( global_cell_list[cell_id_det - 1].y_dim, cell_list[index].y_dim) >= 0);
+						inactive_cell_p_id = 1;
+					}
+					else if (global_cell_list[cell_id_det - 1].y_dim < cell_list[index].y_dim + (height*delta)/2 &&
+					compute_abs_diff( global_cell_list[cell_id_det - 1].y_dim, cell_list[index].y_dim) >= height*delta/2)
+					{
+						assert(compute_abs_diff( global_cell_list[cell_id_det - 1].y_dim, cell_list[index].y_dim) >= 0);
+						inactive_cell_p_id = 2;
+					}	
+				}
+				
+				else if(p_type == 1)
+				{
+					//Vertical partition
+					//Cell is outside the active partition area
+					if(global_cell_list[cell_id_det - 1].x_dim > cell_list[index].x_dim &&
+					compute_abs_diff( global_cell_list[cell_id_det - 1].x_dim, cell_list[index].x_dim) >= width*delta/2 )
+					{
+						assert(compute_abs_diff( global_cell_list[cell_id_det - 1].x_dim, cell_list[index].x_dim) >= 0);
+						inactive_cell_p_id = 2;
+					}
+					else if (global_cell_list[cell_id_det - 1].x_dim < cell_list[index].x_dim + delta && 
+					compute_abs_diff( global_cell_list[cell_id_det - 1].x_dim, cell_list[index].x_dim) >= width*delta/2)
+					{
+						inactive_cell_p_id = 1;
+					}
+				}
+				
+				if( partition_id != inactive_cell_p_id)
+				{
+					same = false;
+					break;
+				}	
 			}
 		}
 		
@@ -1059,7 +1360,7 @@ void initialise_cell_list_fm_metric(vector<int> cell_net_list[], int cell_count,
 }
 
 void initialise_cell_list_fm_metric_test(vector<int> cell_net_list[], int cell_count, vector<Cell> &cell_list, vector<Cell> detailed_net_list[], int net_count,
-vector<Cell> &global_cell_list)
+vector<Cell> &global_cell_list, bool p_type, int mode, double delta, double width, double height, vector<int> bucket_ds[], int max_connect)
 {
 	int x_all=0;
 	int x_only=0;
@@ -1079,7 +1380,7 @@ vector<Cell> &global_cell_list)
 		if(cell_id != 0)
 		{
 			//x_all = all_present_single_partition(cell_id, p_id,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
-			x_all = all_present_single_partition_2(i, p_id,cell_net_list,cell_count,cell_list,detailed_net_list,net_count,global_cell_list);
+			x_all = all_present_single_partition_2(i, p_id,cell_net_list,cell_count,cell_list,detailed_net_list,net_count,global_cell_list, p_type, mode, delta, width, height);
 			//cout<<"computed x_all "<<"i: "<<i<<endl;
 			//cout<<"i: "<<i<<" cell_id: "<<cell_id<<" p_id: "<<p_id<<" cell_count: "<<cell_count<<endl;
 			assert(x_all >= 0);
@@ -1089,10 +1390,12 @@ vector<Cell> &global_cell_list)
 			cell_list[i].all_same_partition_net_count = x_all;
 			global_cell_list[i].all_same_partition_net_count = x_all;
 		//x_only = only_cell(cell_id,p_id,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
-		x_only = only_cell_2(i,p_id,cell_net_list,cell_count,cell_list,detailed_net_list,net_count,global_cell_list);
+		x_only = only_cell_2(i,p_id,cell_net_list,cell_count,cell_list,detailed_net_list,net_count,global_cell_list, p_type, mode, delta, width, height);
 		assert(x_only >= 0);
 		cell_list[i].only_cell_net_count = x_only;
 		global_cell_list[cell_id - 1].only_cell_net_count = x_only;
+		
+		bucket_ds[x_only - x_all + max_connect].push_back(i);
 		}
 	}
 //	cout<<"done with function"<<endl;
@@ -1389,212 +1692,7 @@ int threshold,vector<Cell> adjacent_list[], vector<Cell> reduced_adjacent_list[]
 	//}while(diff_cutsize > 0);
 }
 
-void FM_Algorithm_2(vector<Cell> &cell_list, int cell_count, vector<int> cell_net_list[], vector<Cell> detailed_net_list[], int net_count , int initial_cutsize,
-int threshold,vector<Cell> adjacent_list[], vector<Cell> reduced_adjacent_list[], int initial_cut_size, int max_connect)
-{
-	map<int,int> bucket_list;
-	int p1 = 1;
-	int p2 = 2;
-	bool area_constraint;
-	int cell_id;
-	int cell_p_id;
-	int cell_dest_p_id;
-	int all_locked;
-	int only_cell_count=0, all_cell_count=0;
-	int gain=-1;
-	int gain_max;
-	int th1= cell_count/4;
-	int diff_cutsize;
-	int size_bucket = (2*max_connect) + 1;
-	
-	vector<int> b_list[size_bucket];
-	int cell_last=0;
-	int cell_present=0;
-	int cell_replace=0;
-	//do
-	//{
-	unlock_all_cells(cell_list);
-	int count=-1;
-	int th2 = 10;
-	int count2=-1;
-	while(get_unlocked_cell_id(cell_list) != -1)
-	{
-		count++;
-		
-		if(count2 > th2)
-		{
-			cout<<"threshold2 reached\n";
-			break;
-		}
-		
-		if(count ==th1)
-		{
-			cout<<"threshold3 reached\n";
-			break;
-		}
-			
-	//	if(gain == 0)
-	//		break;
-	//	cout<<"unlocked cell count: "<<count_unlocked_cell(cell_list)<<endl;
-	 bucket_list.clear();
-	 
-	 for(int y=0;y<size_bucket;y++)
-	 {
-	 	b_list[y].clear();
-	 }
-	 for(int i=0;i<cell_count;i++)
-	 {
-	 		//cout<<"Hello"<<endl;
-	 		all_locked = get_unlocked_cell_id(cell_list);
-	 		if(all_locked == -1)
-	 			break;
-	 		if(cell_list[i+1].locked == true)
-	 			continue;
-	 		//cout<<"Hello"<<endl;
-	 		cell_id = i+1;
-	 		cell_p_id = cell_list[i].partition_id;
-	 		
-	 		if(cell_p_id == p1)
-	 		{
-	 			cell_dest_p_id = p2;	
-			}
-			else if(cell_p_id == p2)
-			{
-				cell_dest_p_id = p1;
-			}
-			area_constraint = is_area_constraint_violated(cell_id,cell_dest_p_id,p1,p2,cell_list,threshold,cell_count);
-			
-			//if(count > 10000)
-			  // cout<<"cell_id: "<<cell_id<<"area constraint: "<<area_constraint<<"count unlocked cell: "<<count_unlocked_cell(cell_list)<<endl;
-			
-			if(area_constraint==true && count_unlocked_cell(cell_list)==1 && get_unlocked_cell_id(cell_list) == i+1)
-			{
-					lock_cell(i+1,cell_list);
-					break;	
-			}
-			
-			
-			if(area_constraint==true)
-			{
-				//cout<<"Area violation\n";
-				
-				continue;
-			}
-			
-			//cout<<"Hello"<<endl;
-			//only_cell_count = only_cell(cell_id,cell_p_id,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
-			only_cell_count = cell_list[cell_id - 1].only_cell_net_count;
-			//all_cell_count = all_present_single_partition(cell_id,cell_p_id,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
-			all_cell_count = cell_list[cell_id - 1].all_same_partition_net_count;
-			gain = only_cell_count - all_cell_count;
-			assert(gain + max_connect >= 0);
-			b_list[gain+max_connect].push_back(cell_id);
-			//bucket_list.insert({cell_id,gain});
-		
-			//cout<<"cell: "<<cell_id<<" gain: "<<gain<<endl;
-	 }
-	 
-	 		for(int h=size_bucket-1; h>=0; h--)
-			{
-				if(!b_list[h].empty())
-				{
-					cell_replace = b_list[h][0];
-					cell_present= cell_replace;
-					
-					int dest_p_id1;
-					if(cell_list[cell_replace - 1].partition_id == p1)
-						dest_p_id1 = p2;
-					else if(cell_list[cell_replace - 1].partition_id == p2)
-						dest_p_id1 = p1;
-				
-				//if(count > 300)	
-					//cout<<"cell to move (b_list):"<<cell_replace<<" from "<<cell_list[cell_replace-1].partition_id<<" to "<<dest_p_id1<<"gain: "<<h - max_connect<<"count: "<<count<<endl;
-					
-					set_cell_partition_id(cell_replace,dest_p_id1,cell_list,adjacent_list,cell_count);
-					
-					lock_cell(cell_replace,cell_list);
-					//cout<<"locking cell: "<<cell_replace<<endl;
-					gain_max = h - max_connect;
-					if(cell_last !=0 && cell_last== cell_present && gain_max <= 0)
-					{
-						count2++;
-						//cout<<"count2: "<<count2<<endl;
-					}
-					else
-						count2=0;
-			
-					cell_last=cell_present;
-					
-					//update the fm metric for neighbor of cell_replace
-					update_cell_list_all_cell_net_count(cell_replace,dest_p_id1,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
-					for(int g=0; g<adjacent_list[cell_replace - 1].size();g++)
-					{
-						int adj_cell_id = adjacent_list[cell_replace - 1][g].cell_id;
-						int adj_cell_p_id = cell_list[adj_cell_id - 1].partition_id;
-						update_cell_list_all_cell_net_count(adj_cell_id,adj_cell_p_id,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
-						update_cell_list_fm_only_cell_net_count(adj_cell_id,adj_cell_p_id,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
-					}
-					//---------------------------------------------
-					break;
-				}
-			}
-		/*
-	 	if(!bucket_list.empty())
-	 	{
-	 		//make_heap(bucket_list.begin(),bucket_list.end());
-			auto max = get_max(bucket_list);
-			gain_max = max.second;
-			cell_present= max.first;
-			
-			if(cell_last !=0 && cell_last== cell_present && gain_max >= 0)
-			{
-				count2++;
-				//cout<<"count2: "<<count2<<endl;
-			}
-			else
-				count2=0;
-			
-			cell_last=cell_present;
-	
-			int dest_p_id1;
-			if(cell_list[max.first - 1].partition_id == p1)
-				dest_p_id1 = p2;
-			else if(cell_list[max.first - 1].partition_id == p2)
-				dest_p_id1 = p1;
-			
-			for(int h=size_bucket-1; h>=0; h--)
-			{
-				if(!b_list[h].empty())
-				{
-					cout<<"cell to move (b_list):"<<b_list[h][0]<<" gain: "<<h - max_connect<<endl;
-					break;
-				}
-			}
-		
-			cout<<"Moving cell "<<max.first<<" from "<<cell_list[max.first - 1].partition_id<<" to "<<dest_p_id1<<" gain: "<<gain<<endl;
-			set_cell_partition_id(max.first,dest_p_id1,cell_list,adjacent_list,reduced_adjacent_list,cell_count);
-			lock_cell(max.first,cell_list);
-			
-			//if(gain  <= 0)
-			//	break;
-		}	
-		else
-			cout<<"bucket is empty"<<endl;
-		*/
-		
-		
-		
-		
-    }
-    update_detailed_netlist(cell_list,detailed_net_list,net_count);
-	int new_cut_size = calculate_cutsize(detailed_net_list,net_count);
-	cout<<"new cutsize: "<<new_cut_size<<endl;
-	diff_cutsize = initial_cut_size - new_cut_size;
-	initial_cut_size = new_cut_size;
-	
-	cout<<"Partition1 count: "<<get_partition_count(cell_list,p1)<<" partition2_count: "<<get_partition_count(cell_list,p2)<<endl;
-	//}while(diff_cutsize > 0);
-}
+
 /* Original FM algorithm
 void FM_Algorithm_3(vector<Cell> &cell_list, int cell_count, vector<int> cell_net_list[], vector<Cell> detailed_net_list[], int net_count , int initial_cutsize,
 int threshold,vector<Cell> adjacent_list[], int initial_cut_size, int max_connect, int start_cell_count, int end_cell_count, int f_id)
@@ -1786,7 +1884,8 @@ int threshold,vector<Cell> adjacent_list[], int initial_cut_size, int max_connec
 */
 //------------------------------------------------------------------------------------------------
 void FM_Algorithm_3(vector<Cell> &cell_list, int cell_count, vector<int> cell_net_list[], vector<Cell> detailed_net_list[], int net_count , int initial_cutsize,
-int threshold,vector<Cell> adjacent_list[], int initial_cut_size, int max_connect, int start_cell_count, int end_cell_count, int f_id, vector<Cell> &global_cell_list)
+int threshold,vector<Cell> adjacent_list[], int initial_cut_size, int max_connect, int start_cell_count, int end_cell_count, int f_id, vector<Cell> &global_cell_list, 
+bool p_type, int mode, double delta, double width, double height)
 {
 //	cout<<"inside FM algo"<<endl;
 	map<int,int> bucket_list;
@@ -1799,20 +1898,21 @@ int threshold,vector<Cell> adjacent_list[], int initial_cut_size, int max_connec
 	int all_locked;
 	int only_cell_count=0, all_cell_count=0;
 	int gain=-1;
-	int gain_max;
-	int th1= cell_count/3;
+	int gain_max=0;
+	int th1= cell_count/2;
 	int diff_cutsize;
 	int size_bucket = (2*max_connect) + 1;
-	int threshold1 = (0.1*cell_count)+1;
+	int threshold1 = (0.2*cell_count)+1;
 //	cout<<"Threshold for area: "<<threshold1<<endl;
 	vector<int> b_list[size_bucket];
 	int cell_last=0;
 	int cell_present_index=0;
 	int cell_present=0;
 	int cell_replace_index=0;
+	int gain_sum=-1;
 	//int int threshold1 = (0.1*cell_count)+1;
-	//do
-	//{
+	do
+	{
 	unlock_all_cells(cell_list);
 	int count=-1;
 	int th2 = 10;
@@ -1834,10 +1934,10 @@ int threshold,vector<Cell> adjacent_list[], int initial_cut_size, int max_connec
 		}
 		
 		//gain=0;
-		//if(gain == 0)
-		//	break;
+		if(gain_max < 0)
+			break;
 	//	cout<<"unlocked cell count: "<<count_unlocked_cell(cell_list)<<endl;
-	 bucket_list.clear();
+	 //bucket_list.clear();
 	 
 	 for(int y=0;y<size_bucket;y++)
 	 {
@@ -1848,6 +1948,9 @@ int threshold,vector<Cell> adjacent_list[], int initial_cut_size, int max_connec
 			//cout<<"i: "<<i<<endl;
 	 		if(cell_list[i].cell_id ==0)
 			continue;
+			
+			if(cell_list[i].locked == true)
+				continue;
 	 		//cout<<"Hello"<<endl;
 	 		all_locked = get_unlocked_cell_id_2(cell_list);
 	 		if(all_locked == -1)
@@ -1874,10 +1977,10 @@ int threshold,vector<Cell> adjacent_list[], int initial_cut_size, int max_connec
 			//if(count > 10000)
 			  // cout<<"cell_id: "<<cell_id<<"area constraint: "<<area_constraint<<"count unlocked cell: "<<count_unlocked_cell(cell_list)<<endl;
 			
-			if(area_constraint==true && count_unlocked_cell(cell_list)==1 && get_unlocked_cell_id(cell_list) == i+1)
+			if(area_constraint==true && count_unlocked_cell(cell_list)==1)
 			{
 					//lock_cell(i+1,cell_list);
-					lock_cell_2(i,cell_list);
+				//	lock_cell_2(i,cell_list);
 					break;	
 			}
 			
@@ -1950,8 +2053,9 @@ int threshold,vector<Cell> adjacent_list[], int initial_cut_size, int max_connec
 					assert(cell_list[cell_replace_index].locked==true);
 					//cout<<"locking cell: "<<cell_replace<<endl;
 					gain_max = h - max_connect;
+					gain_sum = gain_sum + gain_max;
 					cell_present = cell_list[cell_replace_index].cell_id;
-				//	cout<<"cell to move (b_list):"<<cell_present<<"gain: "<<h - max_connect<<"count: "<<count<<endl;
+			//		cout<<"cell to move (b_list):"<<cell_present<<" gain: "<<h - max_connect<<" count: "<<count<<endl;
 				//	cout<<"updated global list"<<endl;
 					assert(cell_present > 0);
 				//	cout<<"cell_present: "<<cell_present<<" "<<global_cell_list.size()<<endl;
@@ -1970,8 +2074,8 @@ int threshold,vector<Cell> adjacent_list[], int initial_cut_size, int max_connec
 					cell_last=cell_present;
 					
 					//update the fm metric for neighbor of cell_replace
-					update_cell_list_all_cell_net_count_2(cell_replace_index,dest_p_id1,cell_net_list,cell_count,cell_list,detailed_net_list,net_count,global_cell_list);
-					update_cell_list_fm_only_cell_net_count_2(cell_replace_index,dest_p_id1,cell_net_list,cell_count,cell_list,detailed_net_list,net_count,global_cell_list);
+					update_cell_list_all_cell_net_count_2(cell_replace_index,dest_p_id1,cell_net_list,cell_count,cell_list,detailed_net_list,net_count,global_cell_list, p_type, mode, delta, width, height);
+					update_cell_list_fm_only_cell_net_count_2(cell_replace_index,dest_p_id1,cell_net_list,cell_count,cell_list,detailed_net_list,net_count,global_cell_list, p_type, mode, delta, width, height);
 					
 					for(int g=0; g<adjacent_list[cell_present - 1].size();g++)
 					{
@@ -1998,359 +2102,19 @@ int threshold,vector<Cell> adjacent_list[], int initial_cut_size, int max_connec
     }
     update_detailed_netlist(cell_list,detailed_net_list,net_count);
 	int new_cut_size = calculate_cutsize(detailed_net_list,net_count);
-	//cout<<"new cutsize: "<<new_cut_size<<endl;
+	cout<<"new cutsize: "<<new_cut_size<<endl;
 	diff_cutsize = initial_cut_size - new_cut_size;
 	initial_cut_size = new_cut_size;
-//	cout<<"f_id: "<<f_id<<endl;	
-	//cout<<"Partition1 count: "<<get_partition_count(cell_list,p1)<<" partition2_count: "<<get_partition_count(cell_list,p2)<<endl;
-	//}while(diff_cutsize > 0);
+	cout<<"f_id: "<<f_id<<endl;	
+	cout<<"Partition1 count: "<<get_partition_count(cell_list,p1)<<" partition2_count: "<<get_partition_count(cell_list,p2)<<endl;
+	}while(diff_cutsize > 0);
 }
+
+
+
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
-void FM_Algorithm_5(vector<Cell> &cell_list, int cell_count, vector<int> cell_net_list[], vector<Cell> detailed_net_list[], int net_count , int initial_cutsize,
-int threshold,vector<Cell> adjacent_list[], int initial_cut_size, int max_connect,
-int start_cell_count, int end_cell_count, vector<Cell> &cell_list_p1, vector<Cell> &cell_list_p2)
-{
-	map<int,int> bucket_list;
-	int p1 = 1;
-	int p2 = 2;
-	bool area_constraint;
-	int cell_id;
-	int cell_p_id;
-	int cell_dest_p_id;
-	int all_locked;
-	int only_cell_count=0, all_cell_count=0;
-	int gain=-1;
-	int gain_max;
-	int th1= cell_count/3;
-	int diff_cutsize;
-	int size_bucket = (2*max_connect) + 1;
-	
-	vector<int> b_list[size_bucket];
-	int cell_last=0;
-	int cell_present=0;
-	int cell_replace=0;
-	//do
-	//{
-	unlock_all_cells(cell_list);
-	int count=-1;
-	int th2 = 10;
-	int count2=-1;
-	while(get_unlocked_cell_id(cell_list) != -1)
-	{
-		count++;
-		
-		if(count2 > th2)
-		{
-		//	cout<<"threshold2 reached\n";
-			break;
-		}
-	
-		if(count ==th1)
-		{
-		//	cout<<"threshold3 reached\n";
-			break;
-		}
-		
-		//gain=0;
-		//if(gain == 0)
-		//	break;
-	//	cout<<"unlocked cell count: "<<count_unlocked_cell(cell_list)<<endl;
-	 bucket_list.clear();
-	 
-	 for(int y=0;y<size_bucket;y++)
-	 {
-	 	b_list[y].clear();
-	 }
-	 for(int i=start_cell_count;i<end_cell_count;i++)
-	 {
-	 		if(cell_list[i].cell_id ==0)
-			continue;
-	 		//cout<<"Hello"<<endl;
-	 		all_locked = get_unlocked_cell_id(cell_list);
-	 		if(all_locked == -1)
-	 			break;
-	 		//if(cell_list[i+1].locked == true)
-	 		//	continue;
-	 		//cout<<"Hello"<<endl;
-	 		//cell_id = i+1;
-	 		cell_id = cell_list[i].cell_id;
-	 		
-			
-	 		cell_p_id = cell_list[i].partition_id;
-	 		
-	 		if(cell_p_id == p1)
-	 		{
-	 			cell_dest_p_id = p2;	
-			}
-			else if(cell_p_id == p2)
-			{
-				cell_dest_p_id = p1;
-			}
-			area_constraint = is_area_constraint_violated(cell_id,cell_dest_p_id,p1,p2,cell_list,threshold,cell_count);
-			
-			//if(count > 10000)
-			  // cout<<"cell_id: "<<cell_id<<"area constraint: "<<area_constraint<<"count unlocked cell: "<<count_unlocked_cell(cell_list)<<endl;
-			
-			if(area_constraint==true && count_unlocked_cell(cell_list)==1 && get_unlocked_cell_id(cell_list) == i+1)
-			{
-					lock_cell(i+1,cell_list);
-					break;	
-			}
-			
-			
-			if(area_constraint==true)
-			{
-				//cout<<"Area violation\n";
-				
-				continue;
-			}
-			assert(cell_id >= 1);
-			//cout<<"Hello"<<endl;
-			//only_cell_count = only_cell(cell_id,cell_p_id,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
-			only_cell_count = cell_list[cell_id - 1].only_cell_net_count;
-			//all_cell_count = all_present_single_partition(cell_id,cell_p_id,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
-			all_cell_count = cell_list[cell_id - 1].all_same_partition_net_count;
-			gain = only_cell_count - all_cell_count;
-			assert(gain + max_connect >= 0);
-			b_list[gain+max_connect].push_back(cell_id);
-			//bucket_list.insert({cell_id,gain});
-		
-			//cout<<"cell: "<<cell_id<<" gain: "<<gain<<endl;
-	 }
-	 	
-	 		for(int h=size_bucket-1; h>=0; h--)
-			{
-				if(!b_list[h].empty())
-				{
-					cell_replace = b_list[h][0];
-					cell_present= cell_replace;
-					
-					int dest_p_id1;
-					if(cell_list[cell_replace - 1].partition_id == p1)
-						dest_p_id1 = p2;
-					else if(cell_list[cell_replace - 1].partition_id == p2)
-						dest_p_id1 = p1;
-				
-				//if(count > 300)	
-					//cout<<"cell to move (b_list):"<<cell_replace<<" from "<<cell_list[cell_replace-1].partition_id<<" to "<<dest_p_id1<<"gain: "<<h - max_connect<<"count: "<<count<<endl;
-					
-					set_cell_partition_id(cell_replace,dest_p_id1,cell_list,adjacent_list,cell_count);
-					//cell_ptr.push_back(&cell_list[cell_replace - 1]);
-					lock_cell(cell_replace,cell_list);
-					assert(cell_list[cell_replace - 1].locked==true);
-					//cout<<"locking cell: "<<cell_replace<<endl;
-					gain_max = h - max_connect;
-					if(cell_last !=0 && cell_last== cell_present)
-					{
-						count2++;
-						//cout<<"count2: "<<count2<<endl;
-					}
-					else
-						count2=0;
-			
-					cell_last=cell_present;
-					
-					//update the fm metric for neighbor of cell_replace
-					update_cell_list_all_cell_net_count(cell_replace,dest_p_id1,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
-					update_cell_list_fm_only_cell_net_count(cell_replace,dest_p_id1,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
-					for(int g=0; g<adjacent_list[cell_replace - 1].size();g++)
-					{
-						int adj_cell_id = adjacent_list[cell_replace - 1][g].cell_id;
-						
-					//	if(adj_cell_id >= start_cell_count && adj_cell_id <= end_cell_count)
-					//	{
-							int adj_cell_p_id = cell_list[adj_cell_id - 1].partition_id;
-							update_cell_list_all_cell_net_count(adj_cell_id,adj_cell_p_id,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
-							update_cell_list_fm_only_cell_net_count(adj_cell_id,adj_cell_p_id,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
-					//	}	
-					}
-					//---------------------------------------------
-					break;
-				}
-			}
-    }
-    update_detailed_netlist(cell_list,detailed_net_list,net_count);
-	int new_cut_size = calculate_cutsize(detailed_net_list,net_count);
-//	cout<<"new cutsize: "<<new_cut_size<<endl;
-	diff_cutsize = initial_cut_size - new_cut_size;
-	initial_cut_size = new_cut_size;
-	
-	cout<<"Partition1 count: "<<get_partition_count(cell_list,p1)<<" partition2_count: "<<get_partition_count(cell_list,p2)<<endl;
-	//}while(diff_cutsize > 0);
-	update_sub_cell_list(cell_list, cell_list_p1, cell_list_p2,p1,p2);
-}
 
-void FM_Algorithm_4(vector<Cell> &cell_list, int cell_count, vector<int> cell_net_list[], vector<Cell> detailed_net_list[], int net_count , int initial_cutsize,
-int threshold,vector<Cell> adjacent_list[], int initial_cut_size, int max_connect, int start_cell_count, int end_cell_count)
-{
-	map<int,int> bucket_list;
-	int p1 = 1;
-	int p2 = 2;
-	bool area_constraint;
-	int cell_id;
-	int cell_p_id;
-	int cell_dest_p_id;
-	int all_locked;
-	int only_cell_count=0, all_cell_count=0;
-	int gain=-1;
-	int gain_max;
-	int th1= cell_count/3;
-	int diff_cutsize;
-	int size_bucket = (2*max_connect) + 1;
-	
-	vector<int> b_list[size_bucket];
-	int cell_last=0;
-	int cell_present=0;
-	int cell_replace=0;
-//	do
-//	{
-	unlock_all_cells(cell_list);
-	int count=-1;
-	int th2 = 10;
-	int count2=-1;
-	while(get_unlocked_cell_id(cell_list) != -1)
-	{
-		count++;
-		
-		if(count2 > th2)
-		{
-	//		cout<<"threshold2 reached\n";
-			break;
-		}
-	
-		if(count ==th1)
-		{
-	//		cout<<"threshold3 reached\n";
-			break;
-		}
-		
-		//gain=0;
-		//if(gain == 0)
-		//	break;
-	//	cout<<"unlocked cell count: "<<count_unlocked_cell(cell_list)<<endl;
-	 bucket_list.clear();
-	 
-	 for(int y=0;y<size_bucket;y++)
-	 {
-	 	b_list[y].clear();
-	 }
-	 for(int i=start_cell_count;i<end_cell_count;i++)
-	 {
-	 		if(cell_list[i].cell_id ==0)
-			continue;
-	 		//cout<<"Hello"<<endl;
-	 		all_locked = get_unlocked_cell_id(cell_list);
-	 		if(all_locked == -1)
-	 			break;
-	 		//if(cell_list[i+1].locked == true)
-	 		//	continue;
-	 		//cout<<"Hello"<<endl;
-	 		cell_id = cell_list[i].cell_id;
-	 		
-	 		
-			
-	 		cell_p_id = cell_list[i].partition_id;
-	 		
-	 		if(cell_p_id == p1)
-	 		{
-	 			cell_dest_p_id = p2;	
-			}
-			else if(cell_p_id == p2)
-			{
-				cell_dest_p_id = p1;
-			}
-			area_constraint = is_area_constraint_violated(cell_id,cell_dest_p_id,p1,p2,cell_list,threshold,cell_count);
-			
-			//if(count > 10000)
-			  // cout<<"cell_id: "<<cell_id<<"area constraint: "<<area_constraint<<"count unlocked cell: "<<count_unlocked_cell(cell_list)<<endl;
-			
-			if(area_constraint==true && count_unlocked_cell(cell_list)==1 && get_unlocked_cell_id(cell_list) == cell_list[i].cell_id)
-			{
-					lock_cell(cell_id,cell_list);
-					break;	
-			}
-			
-			
-			if(area_constraint==true)
-			{
-				//cout<<"Area violation\n";
-				
-				continue;
-			}
-			assert(cell_id >= 1);
-			//cout<<"Hello"<<endl;
-			//only_cell_count = only_cell(cell_id,cell_p_id,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
-			only_cell_count = cell_list[cell_id - 1].only_cell_net_count;
-			//all_cell_count = all_present_single_partition(cell_id,cell_p_id,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
-			all_cell_count = cell_list[cell_id - 1].all_same_partition_net_count;
-			gain = only_cell_count - all_cell_count;
-			assert(gain + max_connect >= 0);
-			b_list[gain+max_connect].push_back(cell_id);
-			//bucket_list.insert({cell_id,gain});
-		
-			//cout<<"cell: "<<cell_id<<" gain: "<<gain<<endl;
-	 }
-	 	
-	 		for(int h=size_bucket-1; h>=0; h--)
-			{
-				if(!b_list[h].empty())
-				{
-					cell_replace = b_list[h][0];
-					cell_present= cell_replace;
-					
-					int dest_p_id1;
-					if(cell_list[cell_replace - 1].partition_id == p1)
-						dest_p_id1 = p2;
-					else if(cell_list[cell_replace - 1].partition_id == p2)
-						dest_p_id1 = p1;
-				
-				//if(count > 300)	
-					//cout<<"cell to move (b_list):"<<cell_replace<<" from "<<cell_list[cell_replace-1].partition_id<<" to "<<dest_p_id1<<"gain: "<<h - max_connect<<"count: "<<count<<endl;
-					
-					set_cell_partition_id(cell_replace,dest_p_id1,cell_list,adjacent_list,cell_count);
-					//cell_ptr.push_back(&cell_list[cell_replace - 1]);
-					lock_cell(cell_replace,cell_list);
-					assert(cell_list[cell_replace - 1].locked == true);
-					//cout<<"locking cell: "<<cell_replace<<endl;
-					gain_max = h - max_connect;
-					if(cell_last !=0 && cell_last== cell_present)
-					{
-						count2++;
-						//cout<<"count2: "<<count2<<endl;
-					}
-					else
-						count2=0;
-			
-					cell_last=cell_present;
-					
-					//update the fm metric for neighbor of cell_replace
-					update_cell_list_all_cell_net_count(cell_replace,dest_p_id1,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
-					for(int g=0; g<adjacent_list[cell_replace - 1].size();g++)
-					{
-						int adj_cell_id = adjacent_list[cell_replace - 1][g].cell_id;
-						
-					//	if(adj_cell_id >= start_cell_count && adj_cell_id <= end_cell_count)
-					//	{
-							int adj_cell_p_id = cell_list[adj_cell_id - 1].partition_id;
-							update_cell_list_all_cell_net_count(adj_cell_id,adj_cell_p_id,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
-							update_cell_list_fm_only_cell_net_count(adj_cell_id,adj_cell_p_id,cell_net_list,cell_count,cell_list,detailed_net_list,net_count);
-					//	}	
-					}
-					//---------------------------------------------
-					break;
-				}
-			}
-    }
-    update_detailed_netlist(cell_list,detailed_net_list,net_count);
-	int new_cut_size = calculate_cutsize(detailed_net_list,net_count);
-//	cout<<"new cutsize: "<<new_cut_size<<endl;
-	diff_cutsize = initial_cut_size - new_cut_size;
-	initial_cut_size = new_cut_size;
-	
-//	cout<<"Partition1 count: "<<get_partition_count(cell_list,p1)<<" partition2_count: "<<get_partition_count(cell_list,p2)<<endl;
-//	}while(diff_cutsize > 0);
-}
 
 /*
 void apply_FM_Algorithm(vector<Cell> &cell_list, int cell_count, vector<int> cell_net_list[], vector<Cell> detailed_net_list[], int net_count , int initial_cutsize,
@@ -2369,63 +2133,99 @@ int threshold,vector<Cell> adjacent_list[], int initial_cut_size, int max_connec
 */
 void apply_FM_Algorithm(vector<Cell> &cell_list, int cell_count, vector<int> cell_net_list[], vector<Cell> detailed_net_list[], int net_count , int initial_cutsize
 ,vector<Cell> adjacent_list[], int initial_cut_size, int max_connect, vector<Cell> &cell_ptr_p1, vector<Cell> &cell_ptr_p2,bool p_type,
-vector<Cell> &global_cell_list, double x_coord, double y_coord, double width, double height)
+vector<Cell> &global_cell_list, double x_coord, double y_coord, double width, double height, int mode, double delta)
 {
 		int p1 = 1;
 		int p2 = 2;
+	//	map<int,int> gain_record;
 	//	double x_coord = 0;
 	//	double y_coord = 0;
 		cout<<"In apply_FM_algorithm function : cell count: "<<cell_count<<endl;
 	//	initialise_cell_list(cell_list);
 		initialise_cell_list_2(cell_list,global_cell_list);
-		cout<<"initial partition 1 count: "<<get_partition_count(cell_list,1)<<"initial partition 2 count: "<<get_partition_count(cell_list,2)<<endl;
+		vector<int> bucket_ds[2*max_connect + 1];
+		//cout<<"initial partition 1 count: "<<get_partition_count(cell_list,1)<<" initial partition 2 count: "<<get_partition_count(cell_list,2)<<endl;
 		//cout<<"Hello"<<endl;
-		initialise_cell_list_fm_metric_test(cell_net_list,cell_count,cell_list,detailed_net_list,net_count,global_cell_list);
+		initialise_cell_list_fm_metric_test(cell_net_list,cell_count,cell_list,detailed_net_list,net_count,global_cell_list, p_type, 
+		mode, delta, width, height, bucket_ds, max_connect);
+	//	cout<<"size of map: "<<gain_record.size()<<endl;
 		int threshold = (0.1*cell_count)+1;
 //		unlock_all_cells(cell_list);
 //		cout<<"unlocked all cells"<<endl;
 		//vector<Cell*> cell_ptr;
 		//if(cell_count < 500)
 		//	return;
-		
+/*		
 		if(cell_count > 1500)
 		{
-		//	cout<<"cell count more than 1500"<<endl;
-		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,0,cell_count/8,1,global_cell_list);
+			cout<<"cell count more than 1500"<<endl;
+		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,0,cell_count/8,1,global_cell_list, 
+		p_type, mode, delta, width, height);
 		
-		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,cell_count/8 + 1,cell_count/4,2,global_cell_list);
+		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,cell_count/8 + 1,cell_count/4,2,global_cell_list, 
+		p_type, mode, delta, width, height);
 		//cout<<"size2: "<<cell_ptr.size()<<endl;
 		
-		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,cell_count/4 + 1,(3*cell_count)/8,3,global_cell_list);
+		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,cell_count/4 + 1,(3*cell_count)/8,3,global_cell_list, 
+		p_type, mode, delta, width, height);
 		//cout<<"size3: "<<cell_ptr.size()<<endl;
-		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,((3*cell_count)/8) + 1,cell_count/2,4,global_cell_list);
+		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,((3*cell_count)/8) + 1, cell_count/2,4,global_cell_list,
+		p_type, mode, delta, width, height);
 		//cout<<"size4: "<<cell_ptr.size()<<endl;
 		
-		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect, (cell_count/2) + 1,(5*cell_count)/8,5,global_cell_list);
+		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect, (cell_count/2) + 1,(5*cell_count)/8,5,global_cell_list, 
+		p_type, mode, delta, width, height);
 		//cout<<"size5: "<<cell_ptr.size()<<endl;
-		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect, (5*cell_count)/8 + 1,(3*cell_count)/4,6,global_cell_list);
+		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect, (5*cell_count)/8 + 1,(3*cell_count)/4,6,global_cell_list, 
+		p_type, mode, delta, width , height);
 		//cout<<"size6: "<<cell_ptr.size()<<endl;
 		
-		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,(3*cell_count)/4 + 1, (7*cell_count)/8,7 ,global_cell_list);
+		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,(3*cell_count)/4 + 1, (7*cell_count)/8,7 ,global_cell_list,
+		 p_type, mode, delta, width, height);
 		//cout<<"size7: "<<cell_ptr.size()<<endl;
-		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,(7*cell_count)/8 + 1,cell_count,8,global_cell_list);
+		FM_Algorithm_3(cell_list,cell_count/8,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,(7*cell_count)/8 + 1,cell_count,8,global_cell_list, 
+		p_type, mode, delta, width, height);
 		//cout<<"size8: "<<cell_ptr.size()<<endl;
 		}
 		else if (cell_count > 1000)
 		{
-		//	cout<<"cell count more than 1000"<<endl;
-			FM_Algorithm_3(cell_list,cell_count/4,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,0,cell_count/4,1,global_cell_list);
-			FM_Algorithm_3(cell_list,cell_count/4,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,cell_count/4 + 1,cell_count/2,2,global_cell_list);
-			FM_Algorithm_3(cell_list,cell_count/4,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,cell_count/2 + 1,(3*cell_count)/4,3,global_cell_list);
-			FM_Algorithm_3(cell_list,cell_count/4,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,(3*cell_count)/4 + 1,cell_count,4,global_cell_list);
+			cout<<"cell count more than 1000"<<endl;
+			FM_Algorithm_3(cell_list,cell_count/4,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,0,cell_count/4,1,global_cell_list, 
+			p_type, mode, delta, width, height);
+			FM_Algorithm_3(cell_list,cell_count/4,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,cell_count/4 + 1,cell_count/2,2,global_cell_list,
+			p_type, mode, delta, width, height);
+			FM_Algorithm_3(cell_list,cell_count/4,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,cell_count/2 + 1,(3*cell_count)/4,3,global_cell_list,
+			p_type, mode, delta, width, height);
+			FM_Algorithm_3(cell_list,cell_count/4,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,(3*cell_count)/4 + 1,cell_count,4,global_cell_list, 
+			p_type, mode, delta, width, height);
 		}
 		else
 		{
-		//	cout<<"cell count less than 1000"<<endl;
-			FM_Algorithm_3(cell_list,cell_count/2,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,0,cell_count/2,1,global_cell_list);
-			FM_Algorithm_3(cell_list,cell_count/2,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,cell_count/2 + 1,cell_count,2,global_cell_list);	
+			cout<<"cell count less than 1000"<<endl;
+			FM_Algorithm_3(cell_list,cell_count/2,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,0,cell_count/2,1,global_cell_list,
+			 p_type, mode, delta, width, height);
+			FM_Algorithm_3(cell_list,cell_count/2,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,cell_count/2 + 1,cell_count,2,global_cell_list, 
+			p_type, mode, delta, width, height);	
 		}
-		
+
+*/		
+	    FM_Algorithm_3(cell_list,cell_count,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,0,cell_count,1,global_cell_list,p_type, mode, delta, width, height);
+	/*
+		FM_Algorithm_3(cell_list,cell_count/2,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,0,cell_count/2,1,global_cell_list,
+			p_type, mode, delta, width, height);
+		FM_Algorithm_3(cell_list,cell_count/2,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,cell_count/2 + 1,cell_count,2,global_cell_list, 
+			p_type, mode, delta, width, height);
+	*/
+/*		
+		 FM_Algorithm_3(cell_list,cell_count/4,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,0,cell_count/4,1,global_cell_list,
+                        p_type, mode, delta, width, height);
+                        FM_Algorithm_3(cell_list,cell_count/4,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,cell_count/4 + 1,cell_count/2,2,global_cell_list,
+                        p_type, mode, delta, width, height);
+                        FM_Algorithm_3(cell_list,cell_count/4,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,cell_count/2 + 1,(3*cell_count)/4,3,global_cell_list,
+                        p_type, mode, delta, width, height);
+                        FM_Algorithm_3(cell_list,cell_count/4,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,initial_cutsize,max_connect,(3*cell_count)/4 + 1,cell_count,4,global_cell_list,
+                        p_type, mode, delta, width, height);
+*/
 //		cout<<"End of apply_FM_algorithm function : cell count: "<<cell_list.size()<<" p_type: "<<p_type<<endl;
 		
 		reset_global_cell_list(cell_list, global_cell_list);
@@ -2446,10 +2246,10 @@ vector<Cell> &global_cell_list, double x_coord, double y_coord, double width, do
 				if(p_type == 0) //Horizontal
 				{
 				//	y_coord = cell_list[i].y_dim;
-					assert(y_coord <= chip_height);
+			//		assert(y_coord <= chip_height);
 					//cell_list[i].y_dim =  (3*y_coord/2);
 					cell_list[i].y_dim =  y_coord + height/4;
-					assert(cell_list[i].y_dim <= chip_height);
+			//		assert(cell_list[i].y_dim <= chip_height);
 					
 					if(cell_id != 0)
 					{
@@ -2462,10 +2262,10 @@ vector<Cell> &global_cell_list, double x_coord, double y_coord, double width, do
 				else if(p_type == 1) //vertical
 				{
 				//	x_coord = cell_list[i].x_dim;
-					assert(x_coord <= chip_width);
+			//		assert(x_coord <= chip_width);
 					//cell_list[i].x_dim = x_coord/2;
 					cell_list[i].x_dim = x_coord - width/4;
-						assert(cell_list[i].x_dim <= chip_width);
+			//			assert(cell_list[i].x_dim <= chip_width);
 					
 					
 					if(cell_id != 0)
@@ -2489,12 +2289,12 @@ vector<Cell> &global_cell_list, double x_coord, double y_coord, double width, do
 				{
 					
 				//	y_coord = cell_list[i].y_dim;
-					assert(y_coord <= chip_height);
+			//		assert(y_coord <= chip_height);
 		//			if(cell_count < 1000)
 		//				cout<<"i: "<<i<<endl;
 				//	cell_list[i].y_dim =  (y_coord/2);
 					cell_list[i].y_dim =  y_coord - height/4;
-					assert(cell_list[i].y_dim <= chip_height);
+			//		assert(cell_list[i].y_dim <= chip_height);
 					
 					
 					if(cell_id != 0)
@@ -2511,10 +2311,10 @@ vector<Cell> &global_cell_list, double x_coord, double y_coord, double width, do
 					
 				//	x_coord = cell_list[i].x_dim;
 					
-					assert(x_coord <= chip_width);
+		//			assert(x_coord <= chip_width);
 				//	cell_list[i].x_dim = 3*x_coord/2;
 					cell_list[i].x_dim = x_coord + width/4;
-					assert(cell_list[i].x_dim <= chip_width);
+		//			assert(cell_list[i].x_dim <= chip_width);
 		//			if(cell_count< 1000) cout<<"hello"<<" "<<x_coord<<endl;
 					if(cell_id != 0)
 					{

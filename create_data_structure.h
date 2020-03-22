@@ -2,8 +2,8 @@
 using namespace std;
 
 
-int chip_height = 154;
-int chip_width  = 154;
+int chip_height = 441;
+int chip_width  = 441;
 void create_detailed_netlist(vector<Cell> detailed_net_list[], vector<int> net_list[], int net_count)
 {
 	Cell *temp;
@@ -315,6 +315,7 @@ void initialise_cell_list_2(vector<Cell> &cell_list, vector<Cell> &global_cell_l
 		cell_list[i].only_cell_net_count = 0;
 		cell_list[i].all_same_partition_net_count = 0;
 		cell_list[i].active = true;
+		cell_list[i].locked = false;
 		
 		if(cell_id != 0)
 		{
@@ -322,6 +323,7 @@ void initialise_cell_list_2(vector<Cell> &cell_list, vector<Cell> &global_cell_l
 			global_cell_list[cell_id - 1].only_cell_net_count = 0;
 			global_cell_list[cell_id - 1].all_same_partition_net_count = 0;
 			global_cell_list[cell_id - 1].active = true;
+			global_cell_list[cell_id - 1].locked = false;
 		}
 	}
 }
@@ -335,6 +337,7 @@ void reset_global_cell_list(vector<Cell> cell_list, vector<Cell> &global_cell_li
 		if(cell_id != 0)
 		{
 			global_cell_list[cell_id - 1].active = false;
+			global_cell_list[cell_id - 1].locked = false;
 		}
 	}
 }
@@ -345,4 +348,75 @@ void create_global_cell_list(vector<Cell> cell_list, vector<Cell*> &global_cell_
 	{
 		global_cell_list.push_back(&cell_list[i]);
 	}
+}
+
+unsigned int compute_wirelength(vector<Cell> detailed_net_list[], vector<Cell> global_cell_list, int net_count)
+{
+	unsigned int w = 0;
+	int cell_id;
+	int max_x, max_y;
+	int min_x, min_y;
+	for(int i=0;i<net_count;i++)
+	{
+		max_x = 0;
+		max_y = 0;
+		min_x = 0;
+		min_y = 0;
+		for(int j=0;j < detailed_net_list[i].size();j++)
+		{
+		//	max_x = 0;
+		//	max_y = 0;
+			cell_id = detailed_net_list[i][j].cell_id;
+			assert(cell_id > 0);	
+			if(cell_id > 0)
+			{
+				if(j==0)
+				{
+					max_x = global_cell_list[cell_id - 1].x_dim;
+					min_x = global_cell_list[cell_id - 1].x_dim;
+					max_y = global_cell_list[cell_id - 1].y_dim;
+					min_y = global_cell_list[cell_id - 1].y_dim;
+				}
+				else
+				{
+					if(max_x < global_cell_list[cell_id - 1].x_dim)
+					{
+						max_x = global_cell_list[cell_id - 1].x_dim;
+					}
+					
+					if(min_x > global_cell_list[cell_id - 1].x_dim)
+                                        {
+                                                min_x = global_cell_list[cell_id - 1].x_dim;
+                                        }
+	
+					if( max_y < global_cell_list[cell_id - 1].y_dim)
+					{
+						max_y = global_cell_list[cell_id - 1].y_dim;
+					}
+					
+					if( min_y > global_cell_list[cell_id - 1].y_dim)
+                    {
+                                                min_y = global_cell_list[cell_id - 1].y_dim;
+                    }
+
+				}
+			}
+			
+			//ax_x + max_y;
+			
+		}
+//		cout<<"For net# "<<i<<" max_x: "<<max_x<<" max_y: "<<max_y<<" min_x: "<<min_x<<" min_y: "<<min_y<<endl;
+		w = w + max_x + max_y - min_x - min_y;
+	}
+	return w;
+}
+
+double compute_abs_diff(double a, double b)
+{
+	double diff = a - b;
+	
+	if(diff >= 0)
+		return diff;
+	else
+		return -diff;
 }
