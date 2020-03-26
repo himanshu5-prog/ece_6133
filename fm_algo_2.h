@@ -1,11 +1,59 @@
 #include<iostream>
 #include<algorithm>
 using namespace std;
+//extern bool debugMode;
 
+int get_max_connectivity(vector<int> cell_net_list[], int cell_count)
+{
+	int size_max=0;
+	int size;
+	for(int i=0;i<cell_count;i++)
+	{
+	//	if(cell_list[i].cell_id == 0)
+	//		continue;
+		
+		size= cell_net_list[i].size();
+		if(size > size_max)
+		{
+			size_max = size;
+		}
+	}
+	return size_max;
+}
 
+void initialise(vector<Cell> detailed_net_list[], int detailed_netlist_size, vector<Cell> adjacent_list[], int adj_size )
+{
+	for(int i=0;i<detailed_netlist_size;i++)
+	{
+		for(int j=0;j<detailed_net_list[i].size();j++)
+		{
+			detailed_net_list[i][j].partition_id = (detailed_net_list[i][j].cell_id % 2) + 1;
+		}
+	}
+	
+	for(int i=0; i< adj_size; i++)
+	{
+		if(!adjacent_list[i].empty())
+		{
+			for(int j=0;j<adjacent_list[i].size();j++)
+			{
+				adjacent_list[i][j].partition_id = (adjacent_list[i][j].cell_id % 2) + 1;
+			}
+		}
+		/*	
+		if(!reduced_adjacent_list[i].empty())
+		{
+			for(int j=0;j<reduced_adjacent_list[i].size();j++)
+			{
+				reduced_adjacent_list[i][j].partition_id = (reduced_adjacent_list[i][j].cell_id % 2) + 1;
+			}
+		}
+		*/
+	}
+}
 void FM_Algorithm_wrapper_2 (vector<Cell> &cell_list, int cell_count, vector<int> cell_net_list[], vector<Cell> detailed_net_list[], int net_count , int initial_cutsize,
 int threshold,vector<Cell> adjacent_list[], int max_connect, vector<Cell> &global_cell_list, vector<int> net_list[], double width, double height,
-double x_coord, double y_coord, int mode,bool p_type);
+double x_coord, double y_coord, int mode,bool p_type, bool debugMode);
 
 void create_cellid2index(vector<Cell> cell_list, map<int,int> &cellid2index);
 
@@ -422,7 +470,7 @@ vector<int> &movement, vector<int> &movementGain, vector<int> &movementGainSum)
 
 void FM_Algorithm_single_pass_5(vector<Cell> cell_list, int cell_count, vector<int> cell_net_list[], vector<Cell> detailed_net_list[], int net_count, 
 vector<Cell> adjacent_list[], int max_connect, vector<Cell> global_cell_list, map<int,int> &gain, int **netDistr,
-vector<int> &movement, vector<int> &movementGain, vector<int> &movementGainSum, map<int,int> cellid2index)
+vector<int> &movement, vector<int> &movementGain, vector<int> &movementGainSum, map<int,int> cellid2index, bool debugMode)
 {
 	//vector<int> bucket_ds[2*max_connect + 1];
 //	cout<<"starting FM Algorithm single pass\n";	
@@ -522,7 +570,7 @@ vector<int> &movement, vector<int> &movementGain, vector<int> &movementGainSum, 
 						if(cell_id < 1)
 						{
 							cout<<"cell_id: "<<cell_id<<"index: "<<index<<endl;
-							print_cell_list(cell_list);
+						//	print_cell_list(cell_list);
 						}
 						assert(cell_id >= 1);
 						//movement.push_back(cell_id);
@@ -581,7 +629,13 @@ vector<int> &movement, vector<int> &movementGain, vector<int> &movementGainSum, 
 									//int index3 = cellid2index[cell_id1];
 									if(global_cell_list[cell_id1 - 1].locked == false && global_cell_list[cell_id1-1].active == true)
 									{
-										assert(search_cell(cell_list,cell_id1) ==true);
+										
+										if(debugMode==true)
+										{
+											cout<<"Checking whether the cell is in cell list or not\n";
+											assert(search_cell(cell_list,cell_id1) ==true);
+										}
+										
 										int index3 = cellid2index[cell_id1];
 										
 									/*	
@@ -630,7 +684,14 @@ vector<int> &movement, vector<int> &movementGain, vector<int> &movementGainSum, 
 									
 									if(global_cell_list[cell_id1-1].active == true){
 									int index3 = cellid2index[cell_id1];
-										assert(search_cell(cell_list,cell_id1)==true);
+										
+										
+										if(debugMode == true)
+										{
+											cout<<"Checking whether the cell is in cell list or not\n";
+											assert(search_cell(cell_list,cell_id1)==true);
+										}
+										
 										if(global_cell_list[cell_id1 - 1].locked == false && cell_list[index3].partition_id == dest_p_id)
 										{
 										//	int index3 = cellid2index[cell_id1];
@@ -684,7 +745,13 @@ vector<int> &movement, vector<int> &movementGain, vector<int> &movementGainSum, 
 									
 									if(global_cell_list[cell_id1 - 1].locked == false && global_cell_list[cell_id1-1].active == true)
 									{
-										assert(search_cell(cell_list,cell_id1)==true);
+										
+										if(debugMode)
+										{
+											cout<<"Checking whether the cell is in cell list or not\n";
+											assert(search_cell(cell_list,cell_id1)==true);
+										}
+										
 										int index3 = cellid2index[cell_id1];
 										
 										//assert(gain[index3] <= max_connect && gain[index3] >= -max_connect);
@@ -702,7 +769,7 @@ vector<int> &movement, vector<int> &movementGain, vector<int> &movementGainSum, 
 										
 												if(bucket_ds_2[old_gain].find(index3) != bucket_ds_2[old_gain].end())
 													bucket_ds_2[old_gain].erase(index3);
-											}
+										}
 										//bucket_ds_2[old_gain].erase(index3);
 											
 										gain[index3]--;
@@ -724,7 +791,14 @@ vector<int> &movement, vector<int> &movementGain, vector<int> &movementGainSum, 
 									if(global_cell_list[cell_id1-1].active == true) 
 									{
 										int index3 = cellid2index[cell_id1];
-										assert(search_cell(cell_list,cell_id1)==true);
+										
+										
+										if(debugMode == true)
+										{
+											cout<<"Checking whether the cell is in cell list or not\n";
+											assert(search_cell(cell_list,cell_id1)==true);
+										}
+										
 									if(global_cell_list[cell_id1 - 1].locked == false && cell_list[index3].partition_id == current_p_id)
 									{
 										//int index3 = cellid2index[cell_id1];
@@ -969,6 +1043,117 @@ bool p_type, double x_coord, double y_coord, double width, double height, int mo
 					else if(global_cell_list[cell_id - 1].partition_id == 2)
 					{
 						netDistr[i][1]++;
+					}
+				}
+			}
+			else if(mode == 1) // 50% window
+			{
+				if(p_type == 0 ) //Horizontal partitioning
+				{
+					if(global_cell_list[cell_id - 1].active == true)
+					{
+						if(global_cell_list[cell_id - 1].partition_id == 1)
+						{
+							netDistr[i][0]++;	
+						}
+						else if(global_cell_list[cell_id - 1].partition_id == 2)
+						{
+							netDistr[i][1]++;
+						}
+					}
+					
+					else if(global_cell_list[cell_id - 1].active == false)
+					{
+						if( global_cell_list[cell_id - 1].y_dim > y_coord + height/4  )
+						{
+							netDistr[i][0]++;
+						}
+						else if (global_cell_list[cell_id - 1].y_dim < y_coord - height/4 )
+						{
+							netDistr[i][1]++;
+						}
+					}
+				}
+				else if(p_type == 1) //Vertical cut
+				{
+					if(global_cell_list[cell_id - 1].active == true)
+					{
+						if(global_cell_list[cell_id - 1].partition_id == 1)
+						{
+							netDistr[i][0]++;	
+						}
+						else if(global_cell_list[cell_id - 1].partition_id == 2)
+						{
+							netDistr[i][1]++;
+						}
+					}
+					
+					else if(global_cell_list[cell_id - 1].active == false)
+					{
+						if( global_cell_list[cell_id - 1].x_dim > x_coord + width/4  )
+						{
+							netDistr[i][0]++;
+						}
+						else if (global_cell_list[cell_id - 1].x_dim < x_coord - width/4 )
+						{
+							netDistr[i][1]++;
+						}
+					}
+				}
+				
+			}
+			else if(mode == 2) //All terminal propagated
+			{
+				if(p_type == 0 ) //Horizontal partitioning
+				{
+					if(global_cell_list[cell_id - 1].active == true)
+					{
+						if(global_cell_list[cell_id - 1].partition_id == 1)
+						{
+							netDistr[i][0]++;	
+						}
+						else if(global_cell_list[cell_id - 1].partition_id == 2)
+						{
+							netDistr[i][1]++;
+						}
+					}
+					
+					else if(global_cell_list[cell_id - 1].active == false)
+					{
+						if( global_cell_list[cell_id - 1].y_dim > y_coord  )
+						{
+							netDistr[i][0]++;
+						}
+						else if (global_cell_list[cell_id - 1].y_dim < y_coord )
+						{
+							netDistr[i][1]++;
+						}
+					}
+				}
+				else if(p_type == 1) //Vertical cut
+				{
+					if(global_cell_list[cell_id - 1].active == true)
+					{
+						if(global_cell_list[cell_id - 1].partition_id == 1)
+						{
+							netDistr[i][0]++;	
+						}
+						else if(global_cell_list[cell_id - 1].partition_id == 2)
+						{
+							netDistr[i][1]++;
+						}
+					}
+					
+					else if(global_cell_list[cell_id - 1].active == false)
+					{
+						if( global_cell_list[cell_id - 1].x_dim >= x_coord)
+						{
+							netDistr[i][1]++;
+						}
+						else if (global_cell_list[cell_id - 1].x_dim <= x_coord )
+						{
+							netDistr[i][0]++;
+						}
 					}
 				}
 			}
@@ -1641,17 +1826,19 @@ vector<int> &movement, vector<int> &movementGain, vector<int> &movementGainSum)
 
 void apply_FM_Algorithm_5(vector<Cell> &cell_list, int cell_count, vector<int> cell_net_list[], vector<Cell> detailed_net_list[], int net_count , int initial_cutsize
 ,vector<Cell> adjacent_list[], int max_connect, vector<Cell> &cell_ptr_p1, vector<Cell> &cell_ptr_p2, bool p_type,
-vector<Cell> &global_cell_list, double x_coord, double y_coord, double width, double height, int mode, double delta, vector<int> net_list[])
+vector<Cell> &global_cell_list, double x_coord, double y_coord, double width, double height, int mode, double delta, vector<int> net_list[], double chip_width,
+double chip_height, bool debugMode)
 {
 	int p1 = 1;
 	int p2 = 2;
 	
 	initialise_cell_list_2(cell_list,global_cell_list);
-	cout<<"Initial :: P1 count: "<<get_partition_count_5(cell_list,p1)<<" P2 count: "<<get_partition_count_5(cell_list, p2)<<endl;
+//	cout<<"Initial :: P1 count: "<<get_partition_count_5(cell_list,p1)<<" P2 count: "<<get_partition_count_5(cell_list, p2)<<endl;
 	cout<<"In apply_FM_algorithm function : cell count: "<<cell_count<<endl;
+	
 	int threshold = (0.1*cell_count) + 2;
 	FM_Algorithm_wrapper_2(cell_list,cell_count,cell_net_list,detailed_net_list,net_count,initial_cutsize,threshold,adjacent_list,
-	max_connect,global_cell_list,net_list, width, height, x_coord, y_coord, mode, p_type);
+	max_connect,global_cell_list,net_list, width, height, x_coord, y_coord, mode, p_type, debugMode);
 	
 	reset_global_cell_list(cell_list, global_cell_list);
 	
@@ -1776,9 +1963,9 @@ double x_coord, double y_coord, int mode,bool p_type)
 	//void create_net_distribution_2(vector<Cell> cell_list, vector<int> net_list[], int **netDistr, int net_count, vector<Cell> global_cell_list, 
 //bool p_type, double x_coord, double y_coord, double width, double height, int mode)
 	create_net_distribution_2(cell_list,net_list,netDistribution,net_count,global_cell_list,p_type,x_coord,y_coord,width,height,mode);
-	cout<<"net distribution created\n";
+//	cout<<"net distribution created\n";
 	calculate_initial_gain(netDistribution,net_count,gain,cell_count,cell_net_list,global_cell_list, cell_list);
-	cout<<"initial gain computed\n";
+//	cout<<"initial gain computed\n";
 	//------------------------------------------
 	
 	int max_gain=0,max_pos=0;
@@ -2131,7 +2318,7 @@ void create_cellid2index(vector<Cell> cell_list, map<int,int> &cellid2index)
 }
 void FM_Algorithm_wrapper_2 (vector<Cell> &cell_list, int cell_count, vector<int> cell_net_list[], vector<Cell> detailed_net_list[], int net_count , int initial_cutsize,
 int threshold,vector<Cell> adjacent_list[], int max_connect, vector<Cell> &global_cell_list, vector<int> net_list[], double width, double height,
-double x_coord, double y_coord, int mode,bool p_type)
+double x_coord, double y_coord, int mode,bool p_type, bool debugMode)
 {
 	map<int,int> gain;
 	int old_cutsize = initial_cutsize;
@@ -2145,6 +2332,7 @@ double x_coord, double y_coord, int mode,bool p_type)
 		netDistribution[i][1] = 0;
 	}
 	cout<<"mode: "<<mode<<endl;
+	cout<<"Debugmode: "<<debugMode<<endl;
 	//create_net_distribution(net_list,netDistribution,net_count);
 	//void create_net_distribution_2(vector<Cell> cell_list, vector<int> net_list[], int **netDistr, int net_count, vector<Cell> global_cell_list, 
 //bool p_type, double x_coord, double y_coord, double width, double height, int mode)
@@ -2172,7 +2360,7 @@ double x_coord, double y_coord, int mode,bool p_type)
 			pass++;
 			cell_list_old = cell_list;
 		FM_Algorithm_single_pass_5(cell_list,cell_count,cell_net_list,detailed_net_list ,net_count,adjacent_list,max_connect, 
-		global_cell_list, gain, netDistribution,movement,movementGain,movementGainSum, cellid2index);
+		global_cell_list, gain, netDistribution,movement,movementGain,movementGainSum, cellid2index, debugMode);
 	//	cout<<"done with FM single pass\n";	
 		//print_cell_list_5(cell_list);
 		for(int i=0;i<movementGainSum.size();i++)

@@ -43,6 +43,75 @@ void get_netcount_from_file(const string file_name,int &net_count)
 	
 	
 }
+
+void getDimension(const string fileName, double &chipWidth, double &chipHeight, double *widthCell, int cell_count, int &rowCount)
+{
+	ifstream file;
+	file.open(fileName);
+	
+	if(!file.is_open())
+	{
+		cout<<"Can't open the file"<<endl;
+		return;
+	}
+	
+	int lineNumber=0;
+	int count=0;
+	string word;
+	double b;
+	int p;
+	while(getline(file,word))
+	{
+		string temp;
+		lineNumber++;
+		
+		stringstream iss(word);
+		
+		while(iss >> temp)
+		{
+			
+			
+			if( lineNumber ==1 && count == 0)
+			{
+				b = stof(temp.c_str());
+				chipWidth = b;
+				count++;
+			}
+			else if(lineNumber == 1 && count == 1)
+			{
+				b = stof(temp.c_str());
+				chipHeight = b;
+				count++;
+			//	break;
+			}
+			else if(lineNumber == 1 && (count == 2 || count==3))
+			{
+				count++;
+			}
+						
+			else if(lineNumber == 1 && count ==4)
+			{
+				p = stoi(temp.c_str());
+				//cout<<"p: "<<p<<endl;
+				if(p%2==0)
+					rowCount = p/2;
+				else
+					rowCount = p/2 + 1;
+				count=0;
+				break;
+			}
+			else if(lineNumber > 1)
+			{
+				b = stof(temp.c_str());
+				assert(count >= 0 && count < cell_count);
+				widthCell[count] = b;
+				count++;
+				break;
+			}
+			
+		}
+	}
+}
 void fileRead(const string file_name,int &net_count, int &cell_count, vector<int> net_list[])
 {
 //	cout<<"Reading file\n";
