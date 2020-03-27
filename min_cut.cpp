@@ -8,7 +8,7 @@
 #include<map>
 #include "cell.h" 
 #include "fileRead.h"
-#include "print_functions.h"
+//#include "print_functions.h"
 #include "create_data_structure.h"
 #include "fm_algo_2.h"
 //#include "kl_algo.h"
@@ -21,6 +21,7 @@ const double cellHeight = 1.4;
 const double rowHeight = 1.4;
 
 using namespace std;
+using namespace std::chrono;
 string file_name = "industry3.hgr";
 string dimFileName = "industry3.dim";
 
@@ -29,7 +30,7 @@ string dimFileName = "industry3.dim";
 //Mode: 0 (Min cut placement)
 //Mode: 1 (Mincut placement with 50% window terminal propagation)
 //Mode: 2 (Mincut placement with all terminal propagation)
-int Mode = 0;
+int Mode = 2;
 //---------------------------------------------------------------
 
 //------------------------------------------------------------
@@ -41,6 +42,8 @@ bool debugMode = false;
 
 int main()
 {
+	auto start = high_resolution_clock::now(); 
+	
 	int net_count;
 	int cell_count;
 	int temp_net_count;
@@ -171,5 +174,8 @@ int main()
 	generateCSV(finalPlacement);
 	//---------------------------------------------------
 	//generateRowData(row,rowCount);
+	auto stop = high_resolution_clock::now(); 
+	auto duration = duration_cast<microseconds>(stop - start); 
+	cout <<"( mode: "<<mode<< ") Time taken : "<< duration.count()/1000000 << " seconds" << endl; 
 	return 0;
 }

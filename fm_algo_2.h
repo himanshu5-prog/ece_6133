@@ -777,11 +777,11 @@ bool p_type, double x_coord, double y_coord, double width, double height, int mo
 					
 					else if(global_cell_list[cell_id - 1].active == false)
 					{
-						if( global_cell_list[cell_id - 1].y_dim > y_coord + height/4  )
+						if( global_cell_list[cell_id - 1].y_dim >= y_coord + height/4  )
 						{
 							netDistr[i][0]++;
 						}
-						else if (global_cell_list[cell_id - 1].y_dim < y_coord - height/4 )
+						else if (global_cell_list[cell_id - 1].y_dim <= y_coord - height/4 )
 						{
 							netDistr[i][1]++;
 						}
@@ -803,11 +803,11 @@ bool p_type, double x_coord, double y_coord, double width, double height, int mo
 					
 					else if(global_cell_list[cell_id - 1].active == false)
 					{
-						if( global_cell_list[cell_id - 1].x_dim > x_coord + width/4  )
+						if( global_cell_list[cell_id - 1].x_dim >= x_coord + width/4  )
 						{
 							netDistr[i][1]++;
 						}
-						else if (global_cell_list[cell_id - 1].x_dim < x_coord - width/4 )
+						else if (global_cell_list[cell_id - 1].x_dim <= x_coord - width/4 )
 						{
 							netDistr[i][0]++;
 						}
@@ -833,7 +833,7 @@ bool p_type, double x_coord, double y_coord, double width, double height, int mo
 					
 					else if(global_cell_list[cell_id - 1].active == false)
 					{
-						if( global_cell_list[cell_id - 1].y_dim > y_coord  )
+						if( global_cell_list[cell_id - 1].y_dim >= y_coord  )
 						{
 							netDistr[i][0]++;
 						}
@@ -863,7 +863,7 @@ bool p_type, double x_coord, double y_coord, double width, double height, int mo
 						{
 							netDistr[i][1]++;
 						}
-						else if (global_cell_list[cell_id - 1].x_dim <= x_coord )
+						else if (global_cell_list[cell_id - 1].x_dim < x_coord )
 						{
 							netDistr[i][0]++;
 						}
@@ -1324,7 +1324,7 @@ double x_coord, double y_coord, int mode,bool p_type, bool debugMode)
 	
 	if(diff < 0)
 	{
-		cout<<"Negative diff!!\n";
+		//cout<<"Negative diff!!\n";
 		update_net_distribution(cell_net_list,netDistribution,net_count,cell_count,cell_list_old);
 		update_detailed_netlist_555(cell_list_old,detailed_net_list,net_count, global_cell_list);
 		int new_cut_size = calculate_cutsize_55(detailed_net_list,net_count,global_cell_list);
