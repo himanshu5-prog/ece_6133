@@ -92,108 +92,6 @@ bool legalWidth(double *widthCell, int cellCount)
 	}
 	return true;
 }
-void 
-create_adj_weight(vector<Cell> adjacent_list[], int adj_size, vector<Cell> detailed_net_list[], int detailed_netlist_size, map< pair<int,int>, double > &weight,
-int cell_count, vector< pair<int,int> > &pair_list)
-{
-	int cell_id,size;
-	Cell cell_net_list;
-	bool present=false;
-	double weight1=0;
-	int p,q;
-	for(int i=0;i<cell_count;i++)
-	{
-		for(int j=0;j<detailed_netlist_size;j++)
-		{
-			
-			cell_id = i+1;
-			size = detailed_net_list[j].size();
-			
-			present= is_cell_present(detailed_net_list[j],size,cell_id);
-			
-			if(!present)
-				continue;
-			
-			else if(present)
-			{
-				
-				weight1 = 1/ (double (size -1));
-				
-				for(int k=0;k<detailed_net_list[j].size();k++)
-				{
-					cell_net_list = detailed_net_list[j][k];	
-					if(cell_id == cell_net_list.cell_id)
-						continue;
-					
-					else
-					{
-						//cout<<"for "<<cell_id<<" and "<<cell_net_list.cell_id<<" weight: "<<weight1<<endl;
-						bool present_2 = is_cell_present(adjacent_list[i],adjacent_list[i].size(),cell_net_list.cell_id);
-						
-						if(!present_2)
-						{
-							adjacent_list[i].push_back(cell_net_list);
-						}
-						
-						
-						if(cell_id < cell_net_list.cell_id)
-						{
-							p = cell_id;
-							q = cell_net_list.cell_id;	
-						}
-						else 
-						{
-							p = cell_net_list.cell_id;
-							q = cell_id;
-						}
-						assert(p < q);
-						pair<int,int> p1 (p,q);
-						
-						map< pair<int,int>, double > :: iterator itr;
-						itr = weight.find(p1);
-						
-						if(itr != weight.end())
-						{
-							//Found
-							weight[{p,q}]+=weight1;
-							//cout<<"weight vector: ("<<p<<", "<<q<<") "<<weight[{p,q}]<<endl;
-						//	cout<<"Found"<<endl;
-						}
-						else
-						{
-							//not found
-							weight[{p,q}] = weight1;
-							pair_list.push_back(p1);
-							
-							
-						//	cout<<"Not found"<<endl;
-						}
-						//weight1=0;
-									
-					}
-				}
-			}		
-		}
-	}
-	post_processing_weight(pair_list,weight);
-//	cout<<"size: "<<pair_list.size()<<endl;
-	//cout<<weight[{2,4}];
-}
-
-void create_reduced_adj(vector<Cell> adjacent_list[], vector<Cell> reduced_adjacent_list[], int cell_count)
-{
-	
-	for(int i=0;i<cell_count;i++)
-	{
-		for(int j=0; j< adjacent_list[i].size();j++)
-		{
-			if(i+1 < adjacent_list[i][j].cell_id)
-			{
-				reduced_adjacent_list[i].push_back(adjacent_list[i][j]);
-			}
-		}
-	}
-}
 
 void create_cell_list(vector<Cell> &cell_list, int cell_count, vector<Cell> detailed_net_list[], int detailed_netlist_size)
 {
@@ -275,8 +173,8 @@ void create_cell_list_2(vector<Cell> &cell_list, int cell_count, vector<Cell> de
 		}
 		if(loop_exit==false)
 		{
-			cout<<"inserting dummy cell!! ";
-			cout<<"cell_id not connected: "<<cell_id<<endl;
+	//		cout<<"inserting dummy cell!! ";
+	//		cout<<"cell_id not connected: "<<cell_id<<endl;
 			cell_list.push_back(*temp);
 		}
 	}

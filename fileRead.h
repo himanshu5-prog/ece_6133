@@ -44,7 +44,7 @@ void get_netcount_from_file(const string file_name,int &net_count)
 	
 }
 
-void getDimension(const string fileName, double &chipWidth, double &chipHeight, double *widthCell, int cell_count, int &rowCount)
+bool getDimension(const string fileName, double &chipWidth, double &chipHeight, double *widthCell, int cell_count, int &rowCount)
 {
 	ifstream file;
 	file.open(fileName);
@@ -52,7 +52,7 @@ void getDimension(const string fileName, double &chipWidth, double &chipHeight, 
 	if(!file.is_open())
 	{
 		cout<<"Can't open the file"<<endl;
-		return;
+		return false;
 	}
 	
 	int lineNumber=0;
@@ -111,8 +111,9 @@ void getDimension(const string fileName, double &chipWidth, double &chipHeight, 
 			
 		}
 	}
+	return true;
 }
-void fileRead(const string file_name,int &net_count, int &cell_count, vector<int> net_list[])
+bool fileRead(const string file_name,int &net_count, int &cell_count, vector<int> net_list[])
 {
 //	cout<<"Reading file\n";
 	ifstream file;
@@ -122,7 +123,7 @@ void fileRead(const string file_name,int &net_count, int &cell_count, vector<int
 	if(!file.is_open())
 	{
 		cout<<"Can't open the file"<<endl;
-		return;
+		return false;
 	}
 	//cout<<"File is opened";
 	int b,line_number=0;
@@ -186,35 +187,7 @@ void fileRead(const string file_name,int &net_count, int &cell_count, vector<int
 	file.close();
 	//cout<<"Hello";
 	//print_func(net_list,net_count);
-}
-
-vector<string> 
-fileRead_stage1(const string file_name)
-{
-	ifstream file;
-	//file.open("test.txt");
-	file.open(file_name);
-	string p = "";
-	vector<string> v;
-	if(!file.is_open())
-	{
-		cout<<"Can't open the file"<<endl;
-		return v;
-	}
-	//cout<<"File is opened";
-	int b,line_number=0;
-	string word;
-	int count=0;
-	int count_1=0;
-	
-	while(getline(file, word))
-	{
-		v.push_back(word);
-	}
-	//cout<<"size: "<<v.size();
-	file.close();
-	//cout<<"Hello";
-	//print_func(net_list,net_count);
+	return true;
 }
 
 vector<int> split(const string s, char delimiter)
@@ -237,34 +210,3 @@ unsigned int countWordsInString(std::string const& str)
     std::stringstream stream(str);
     return std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
 }
-
-void fileRead_stage2(vector<string> v, vector<int> &content, vector<int> &size1)
-{
-	string word;
-	string temp;
-	int count=0;
-	int b;
-	int count_1=0;
-	vector<int> x;
-	//vector<int> content;
-//	vector<int> size1;
-	for(int i=0;i<v.size();i++)
-	{
-		temp = v[i];
-		size1.push_back(countWordsInString(temp));
-		stringstream iss(temp);
-		
-		x = split(temp, ' ');
-		for(int j=0;j<x.size();j++)
-		{
-			content.push_back(x[j]);
-		}
-		//cout<<x.size()<<endl;
-		
-	}
-	cout<<content.size()<<" "<<size1[0];
-	
-	//return content;
-	
-}
-
